@@ -24,7 +24,7 @@ function App() {
     app.state;
   const newCriticalHits = (drawResults[0] ?? []).filter((v) => v.critical).length;
   const hasSelections = selections.white > 0 || selections.yellow > 0 || selections.red > 0 || selections.black > 0;
-  const showDrawCritical = !hasSelections && newCriticalHits > 0;
+  const showDrawCritical = !isEncounter && !hasSelections && newCriticalHits > 0;
 
   return (
     <div className={classes.root}>
