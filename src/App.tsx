@@ -35,6 +35,7 @@ function App() {
             variant="text"
             color={isEncounter ? 'error' : 'inherit'}
             sx={{ flexGrow: 1, textAlign: 'center' }}
+            disabled={drawResults.length > 0}
             onClick={app.actions.toggleDeck}
           >
             {isEncounter ? 'Encounter Deck' : 'Oathsworn Might Deck'}
