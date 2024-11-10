@@ -1,6 +1,6 @@
 import MightCard from './MightCard';
 import MightDice from './MightDice';
-import { factorial } from './MathFunctions';
+import { hypergeometricProbability } from '../modules/math';
 
 export default class MightDeck {
   dice: MightDice;
@@ -109,6 +109,10 @@ export default class MightDeck {
     return this.deck.reduce((count, card) => !card.value ? count + 1 : count, 0);
   }
 
+  get nDiscardedBlanks(): number {
+    return this.discard.filter((v) => v.value === 0).length;
+  }
+
   get nCrits(): number {
     return this.deck.reduce((count, card) => card.critical ? count + 1 : count, 0);
   }
@@ -121,7 +125,11 @@ export default class MightDeck {
     this._deck = cards;
     this.deckAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : this.discardAverage;
     this.deckNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : this.discardNoBlanksEV;
-    this.deckEV = cards.length ? this.deckNoBlanksEV*MightDeck.zeroBlanksProbability(cards, this.discard, 1) : this.discardEV;
+    this.deckEV = cards.length ? this.deckNoBlanksEV*this.zeroBlanksProbability(1) : this.discardEV;
+  }
+
+  get nDiscardedCriticals(): number {
+    return this.discard.filter((v) => v.critical).length;
   }
 
   get discard(): MightCard[] {
@@ -132,7 +140,7 @@ export default class MightDeck {
     this._discard = cards;
     this.discardAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : 0;
     this.discardNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : 0;
-    this.discardEV = cards.length ?  this.discardNoBlanksEV*MightDeck.zeroBlanksProbability(cards, [], 1) : 0;
+    this.discardEV = cards.length ?  this.discardNoBlanksEV*this.zeroBlanksProbability(1) : 0;
 
     if (this.deck.length === 0) {
       this.deckAverage = this.discardAverage;
@@ -141,55 +149,23 @@ export default class MightDeck {
     }
   }
 
-
-  static zeroBlanksProbability(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
-    const deckSize = cards.length;
-    const blanksInDeck = cards.reduce((count, card) => !card.value ? count + 1 : count, 0);
-
-    if(drawSize <= deckSize && blanksInDeck === 0)
-      return 1;
-
-    if(drawSize >= deckSize && blanksInDeck !== 0)
-      return 0;
-
-    if (drawSize > deckSize) {
-      // reaching this point, there is zero blank in the deck
-
-      return MightDeck.zeroBlanksProbability(discards, [], drawSize-deckSize);
+  zeroBlanksProbability(draws: number): number {
+    if (draws > this.deck.length) {
+      const drafFromDeck = this.deck.length;
+      const drafFromDiscard = draws - drafFromDeck;
+      return hypergeometricProbability(this.deck.length, drafFromDeck, this.nBlanks, 0) * hypergeometricProbability(this.discard.length, drafFromDiscard, this.nDiscardedBlanks, 0);
     }
-
-    // reaching this point, there are some blanks in the deck
-    if(drawSize > deckSize-blanksInDeck)
-      return 0;
-
-    // drawsize <= decksize-blanksInDeck
-
-    return factorial(deckSize-blanksInDeck)/factorial(deckSize-blanksInDeck-drawSize)*factorial(deckSize-drawSize)/factorial(deckSize);
+    return hypergeometricProbability(this.deck.length, draws, this.nBlanks, 0);
   }
 
-  static exactlyOneBlankProbability(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
-    const deckSize = cards.length;
-    const nBlanks = cards.reduce((count, card) => !card.value ? count + 1 : count, 0);
-    
-    if (drawSize === 0)
-      return 0;
-
-    if(drawSize === deckSize)
-      return nBlanks === 1 ? 1 : 0;
-    
-    if(drawSize >= deckSize && nBlanks > 1)
-      return 0;
-
-    if (drawSize > deckSize) {
-      // reaching this point, there is 0 or 1 blank in the deck
-
-      return nBlanks ? MightDeck.zeroBlanksProbability(discards, [], drawSize-deckSize) : MightDeck.exactlyOneBlankProbability(discards, [], drawSize-deckSize);
+  exactlyOneBlankProbability(draws: number): number {
+    if (draws > this.deck.length) {
+      const drafFromDeck = this.deck.length;
+      const drafFromDiscard = draws - drafFromDeck;
+      return hypergeometricProbability(this.deck.length, drafFromDeck, this.nBlanks, 0) * hypergeometricProbability(this.discard.length, drafFromDiscard, this.nDiscardedBlanks, 1) +
+        hypergeometricProbability(this.deck.length, drafFromDeck, this.nBlanks, 1) * hypergeometricProbability(this.discard.length, drafFromDiscard, this.nDiscardedBlanks, 0);
     }
-
-    if(drawSize > deckSize-nBlanks+1)
-      return 0;
-  
-    return nBlanks*drawSize*factorial(deckSize - nBlanks)/factorial(deckSize-nBlanks-drawSize+1)*factorial(deckSize-drawSize)/factorial(deckSize);
+    return hypergeometricProbability(this.deck.length, draws, this.nBlanks, 1);
   }
 
   toString(): string {

@@ -5,7 +5,6 @@ import { FC } from 'react';
 import { useAppState } from '../data/AppState';
 import MightCard from '../data/MightCard';
 import CMightCard from './Card';
-import MightDeck from '../data/MightDeck';
 
 export type CResultsBoardProps = {
   values: MightCard[][];
@@ -49,13 +48,14 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
 
   } else {
 
+    const deck = app.state.oathswornDeck;
     // Precompute probabilities of zero and one blanks for each color.
     const probZeroBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = MightDeck.zeroBlanksProbability(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
+      acc[color] = deck[color].zeroBlanksProbability(app.state.selections[color]);
       return acc;
     }, {} as Record<typeof colors[number], number>);
     const probOneBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = MightDeck.exactlyOneBlankProbability(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
+      acc[color] = deck[color].exactlyOneBlankProbability(app.state.selections[color]);
       return acc;
     }, {} as Record<typeof colors[number], number>);
     
