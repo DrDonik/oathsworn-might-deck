@@ -25,6 +25,7 @@ function App() {
   const newCriticalHits = (drawResults[0] ?? []).filter((v) => v.critical).length;
   const hasSelections = selections.white > 0 || selections.yellow > 0 || selections.red > 0 || selections.black > 0;
   const showDrawCritical = !isEncounter && !hasSelections && newCriticalHits > 0;
+  const drawResultsSelections = Object.values(app.state.drawResultsSelections).map(v => Object.values(v)).flat().filter(selected => selected);
 
   return (
     <div className={classes.root}>
@@ -87,15 +88,26 @@ function App() {
                 Draw
               </Button>
           }
-          <Button
-            variant="outlined"
-            color="error"
-            sx={{ flexGrow: 1 }}
-            disabled={app.state.drawResults.length === 0 || hasSelections}
-            onClick={app.actions.discardDrawResults}
-          >
-            Discard
-          </Button>
+          {
+            drawResultsSelections.length > 0 ?
+              <Button
+                variant="outlined"
+                color="error"
+                sx={{ flexGrow: 1 }}
+                disabled={app.state.drawResults.length === 0 || hasSelections}
+                onClick={app.actions.discardSelectedDrawResults}
+              >
+                Discard Selected ({drawResultsSelections.length})
+              </Button> : <Button
+                variant="outlined"
+                color="error"
+                sx={{ flexGrow: 1 }}
+                disabled={app.state.drawResults.length === 0 || hasSelections}
+                onClick={app.actions.discardAllDrawResults}
+              >
+                Confirm & Discard
+              </Button>
+          }
         </Toolbar>
       </AppBar>
     </div>

@@ -16,6 +16,7 @@ export type CMightCardProps = {
   vertical?: boolean;
   value?: MightCard;
   new?: boolean;
+  selected?: boolean;
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
@@ -30,6 +31,10 @@ const useStyles = makeStyles((theme) => ({
     '&:hover': {
       cursor: 'pointer',
     },
+  },
+  selected: {
+    border: `2px solid ${colors.red[800]}`,
+    margin: -2,
   },
   white: { background: colors.grey[100], color: colors.common.black },
   yellow: { background: colors.yellow[700], color: colors.common.black },
@@ -83,6 +88,7 @@ const CMightCard: FC<CMightCardProps> = ({
   vertical,
   value,
   new: isNew,
+  selected,
   onClick,
   className,
   children,
@@ -94,7 +100,10 @@ const CMightCard: FC<CMightCardProps> = ({
     <Card
       className={clsx(
         classes.root,
-        { [classes.selectable]: !!onClick },
+        {
+          [classes.selectable]: !!onClick,
+          [classes.selected]: selected,
+        },
         className,
       )}
       onClick={onClick}

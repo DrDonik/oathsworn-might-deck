@@ -183,6 +183,8 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
                   front
                   type={app.state.isEncounter ? 'encounter' : 'oathsworn'}
                   value={v}
+                  selected={app.state.drawResultsSelections[i]?.[j]}
+                  onClick={() => app.actions.toggleDrawResultSelection(i, j)}
                 />
               </Grid>
             ))
