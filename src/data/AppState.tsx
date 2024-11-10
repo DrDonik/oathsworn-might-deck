@@ -47,7 +47,7 @@ const AppStateContext = createContext<AppStateContextProps | undefined>(
 );
 
 export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>(createDefaultAppState());
+  const [state, setState] = useState<AppState>(() => createDefaultAppState());
 
   const updateState = (newState: Partial<AppState>) => {
     setState((prevState) => ({ ...prevState, ...newState }));
