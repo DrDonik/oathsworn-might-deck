@@ -93,7 +93,7 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         };
       }),
 
-    confirmDrawCriticals: () =>
+    confirmDrawCriticals: () => {
       setState((prev) => {
         console.log('confirmDrawCriticals', prev);
         const newCriticals = prev.drawResults[0].filter((v) => v.critical);
@@ -105,8 +105,12 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return {
           ...prev,
           selections,
-        }
-      }),
+        };
+      });
+    
+      // After updating selections, immediately call confirmDraw
+      setTimeout(() => actions.confirmDraw(), 0);
+    },
 
     discardDrawResults: () =>
       setState((prev) => {
