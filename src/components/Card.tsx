@@ -63,8 +63,9 @@ const useStyles = makeStyles((theme) => ({
   value: {
     paddingTop: '1vw',
     paddingLeft: '0.2vw',
+    fontSize: '2.5rem !important', // Adjust this to your desired size
     '&$critical': {
-      fontSize: 'larger',
+      fontSize: '3rem !important', // Optional: adjust the size for critical values if needed
     },
   },
   tag: {

@@ -153,7 +153,7 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
           <Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography>
         </Grid>
         <Grid size={{ xs: 6, sm: 3}}>
-          <Typography>Corrected EV: {(evCorrected).toFixed(1)}</Typography>
+          <Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography>
         </Grid>
         <Grid size={{ xs: 6, sm: 3}}>
         </Grid>

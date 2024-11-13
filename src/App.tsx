@@ -10,6 +10,7 @@ const useStyles = makeStyles((theme) => ({
     minHeight: '100vh',
     paddingTop: 48,
     paddingBottom: 48,
+    fontSize: '1.5rem !important', // Adjust this to your desired size
   },
   main: {},
   organizer: {},
@@ -56,7 +57,7 @@ function App() {
         </Grid>
       </Grid>
 
-      <AppBar position="fixed" sx={{ top: 'auto', bottom: 0 }} color="default">
+      <AppBar position="fixed" sx={{ top: 'auto', bottom: 20 }} color="default">
         <Toolbar variant="dense" sx={{ gap: 2 }}>
           <Button
             variant="outlined"
