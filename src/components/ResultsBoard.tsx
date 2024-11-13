@@ -146,29 +146,29 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
   return (
     <Grid container spacing={1}>
       <Grid size={12} container>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Expected Hit Value: {ev.toFixed(1)}</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
         </Grid>
       </Grid>
       <Grid size={12} container>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Damage: {damage}</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Critical Hits: {criticalHits}</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           <Typography>Blanks: {blanks}</Typography>
         </Grid>
-        <Grid size={{ xs: 6, sm: 3}}>
+        <Grid size={{ xs: 6, sm: 6, md: 3}}>
           {missed && <Chip color="error" label="Missed" size="small" />}
         </Grid>
       </Grid>
@@ -176,7 +176,7 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
         <Grid container spacing={1}>
           {values.map((row, i) =>
             row.map((v, j) => (
-              <Grid size={{ xs: 6, sm: 3}} key={`${i}-${j}`}>
+              <Grid size={{ xs: 6, sm: 6, md: 3}} key={`${i}-${j}`}>
                 <CMightCard
                   color={v.color}
                   new={i === 0}
