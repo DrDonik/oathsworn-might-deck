@@ -29,7 +29,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
 
   return (
     <Grid container spacing={2}>
-      <Grid size={6}>
+      <Grid size={{ xs: 6, sm: 6, md: 3}}>
         <CMigthDeck
           type={type}
           value={value?.white}
@@ -39,7 +39,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           }}
         />
       </Grid>
-      <Grid size={6}>
+      <Grid size={{ xs: 6, sm: 6, md: 3}}>
         <CMigthDeck
           type={type}
           value={value?.yellow}
@@ -49,7 +49,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           }}
         />
       </Grid>
-      <Grid size={6}>
+      <Grid size={{ xs: 6, sm: 6, md: 3}}>
         <CMigthDeck
           type={type}
           value={value?.red}
@@ -59,7 +59,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           }}
         />
       </Grid>
-      <Grid size={6}>
+      <Grid size={{ xs: 6, sm: 6, md: 3}}>
         <CMigthDeck
           type={type}
           value={value?.black}

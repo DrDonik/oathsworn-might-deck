@@ -43,7 +43,7 @@ function App() {
       </AppBar>
 
       <Grid container padding={2} spacing={2} className={classes.main}>
-        <Grid size={{ xs: 12, sm: 6, md: 4}}>
+        <Grid size={{ xs: 12, sm: 12, md: 12}}>
           <CMightDeckOrganizer
             type={isEncounter ? 'encounter' : 'oathsworn'}
             value={isEncounter ? encounterDeck : oathswornDeck}
@@ -51,12 +51,12 @@ function App() {
             onSelect={app.actions.setSelections}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 8}}>
+        <Grid size={{ xs: 12, sm: 12, md: 12}}>
           <CResultsBoard values={drawResults} />
         </Grid>
       </Grid>
 
-      <AppBar position="fixed" sx={{ top: 'auto', bottom: 20 }} color="default">
+      <AppBar position="fixed" sx={{ top: 'auto', bottom: 0, height: 80 }} color="default">
         <Toolbar variant="dense" sx={{ gap: 2 }}>
           <Button
             variant="outlined"
@@ -92,7 +92,7 @@ function App() {
             disabled={app.state.drawResults.length === 0 || hasSelections}
             onClick={app.actions.discardDrawResults}
           >
-            Confirm & Discard
+            Discard
           </Button>
         </Toolbar>
       </AppBar>
