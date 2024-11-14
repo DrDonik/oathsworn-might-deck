@@ -1,19 +1,21 @@
 # Oathsworn Might Deck Tool
 
 Web app to replace the physical might decks with a digital version when playing the boardgame "Oathsworn: Into the Deepwood".
-The entire front end has been coded by killalau. DrDonik added the statistics.
+[The entire front end has been coded by killalau](https://github.com/killalau/oathsworn-might-deck). DrDonik added the statistics.
 
 Features of this digital implementation:
 - managing card draws and deck reshuffling
-- displyaing the remaining blanks and crits in each deck
-- displaying the probability for a hit for any combination of cards to be drawn from the four decks
-- displaying the expected value for the damage drawn
- - for the individual decks, i.e., the expected value for the next card drawn from each individual deck
- - for any combination of cards to be drawn from the four decks
+- Displaying for each individual deck
+  - the remaining cards, blanks and crits
+  - the Expected Value for the next card drawn from this deck
+- Displaying for any combination of cards to be drawn from the four decks,
+  - the probability for a hit
+  - the Expected Hit Value, i.e., the expected damage in case of a hit 
+  - the Expected Value, including misses
 
-[Demo link (DrDonik's version with statistics)](https://drdonik.github.io/oathsworn-might-deck/)
+[Demo link (DrDonik's version with full statistics)](https://drdonik.github.io/oathsworn-might-deck/)
 
-[Demo link (killalau's version without statistics)](https://killalau.github.io/oathsworn-might-deck/)
+[Demo link (killalau's version with Hit Chance and Deck Quality indicators)](https://killalau.github.io/oathsworn-might-deck/)
 
 ## Development
 
