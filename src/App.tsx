@@ -4,6 +4,7 @@ import CMightDeckOrganizer from './components/Organizer';
 import { useAppState } from './data/AppState';
 import CResultsBoard from './components/ResultsBoard';
 import { makeStyles } from '@mui/styles';
+import Divider from '@mui/material/Divider';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -38,7 +39,6 @@ function App() {
           >
             {isEncounter ? 'Encounter Deck' : 'Oathsworn Might Deck'}
           </Button>
-          <div></div>
         </Toolbar>
       </AppBar>
 
@@ -50,6 +50,7 @@ function App() {
             selected={selections}
             onSelect={app.actions.setSelections}
           />
+          <Divider />
         </Grid>
         <Grid size={{ xs: 12, sm: 12, md: 12}}>
           <CResultsBoard values={drawResults} />

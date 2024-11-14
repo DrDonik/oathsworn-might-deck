@@ -20,6 +20,9 @@ const theme = createTheme({
       main: colors.red[800],
     },
   },
+  typography: {
+    fontSize: 17,
+  },
 });
 
 const root = ReactDOM.createRoot(
