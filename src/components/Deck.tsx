@@ -27,7 +27,7 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
             sx={{
               position: 'absolute',
               bottom: '8px',  // Adjust this as needed
-              right: '8px', // Adjust this as needed
+              left: '8px', // Adjust this as needed
               zIndex: 2
             }}
           />
