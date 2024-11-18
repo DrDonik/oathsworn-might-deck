@@ -110,6 +110,7 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return {
           ...prev,
           selections,
+          drawResultsSelections: {},
         };
       });
     
@@ -141,7 +142,6 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
           ...acc,
           [card.color]: acc[card.color] + 1
         }), { ...defaultMightCardsSelection });
-
 
         return {
           ...prev,

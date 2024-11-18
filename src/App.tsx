@@ -78,6 +78,15 @@ function App() {
                 onClick={app.actions.confirmDrawCriticals}
               >
                 Draw Critical{newCriticalHits > 1 ? 's' : ''} ({newCriticalHits})
+              </Button> : drawResultsSelections.length > 0 ?
+              <Button
+                variant="outlined"
+                color="primary"
+                sx={{ flexGrow: 1 }}
+                disabled={app.state.drawResults.length === 0 || hasSelections}
+                onClick={app.actions.redrawSelectedDrawResults}
+              >
+                Redraw Selected ({drawResultsSelections.length})
               </Button> : <Button
                 variant="outlined"
                 color="primary"
@@ -88,26 +97,15 @@ function App() {
                 Draw
               </Button>
           }
-          {
-            drawResultsSelections.length > 0 ?
-              <Button
-                variant="outlined"
-                color="error"
-                sx={{ flexGrow: 1 }}
-                disabled={app.state.drawResults.length === 0 || hasSelections}
-                onClick={app.actions.redrawSelectedDrawResults}
-              >
-                Redraw Selected ({drawResultsSelections.length})
-              </Button> : <Button
-                variant="outlined"
-                color="error"
-                sx={{ flexGrow: 1 }}
-                disabled={app.state.drawResults.length === 0 || hasSelections}
-                onClick={app.actions.discardAllDrawResults}
-              >
-                Confirm & Discard
-              </Button>
-          }
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{ flexGrow: 1 }}
+            disabled={app.state.drawResults.length === 0 || hasSelections}
+            onClick={app.actions.discardAllDrawResults}
+          >
+            Confirm & Discard
+          </Button>
         </Toolbar>
       </AppBar>
     </div>
