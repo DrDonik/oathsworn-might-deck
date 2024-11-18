@@ -213,34 +213,50 @@ Discard(${this.discard.length}):
 ${summarize(MightDeck.sort(this.discard))}`;
   }
 
-  static calculateNoBlanksEV(cards: { value: number; critical: boolean}[]): number {
+  static calculateNoBlanksEV(cards: { value: number; critical: boolean }[]): number {
     const nonBlankCards = cards.filter((card) => card.value !== 0);
-
-    let total = nonBlankCards.reduce((sum, card) => sum + card.value, 0);
-
+  
+    if (nonBlankCards.length === 0) {
+      return 0; // No cards to draw from
+    }
+  
+    // Calculate the base EV from non-critical cards
+    const baseEV = nonBlankCards.reduce((sum, card) => sum + card.value, 0);
+  
+    // If all cards are critical, the EV becomes infinite theoretically.
     if (nonBlankCards.every(card => card.critical)) {
-      return nonBlankCards.length > 0 ? total : 0;
+      return baseEV; // Simplify for edge cases
     }
-
-    if (nonBlankCards.some(card => card.critical)) {
-      total += MightDeck.calculateAdjustedEv(cards);
-    }
-
-    return cards.length > 0 ? total / nonBlankCards.length : 0;
+  
+    // Add the adjusted EV from critical chains
+    const criticalAdjustedEV = cards.some(card => card.critical) ? MightDeck.calculateAdjustedEv(cards) : 0;
+  
+    return (baseEV + criticalAdjustedEV) / nonBlankCards.length;
   }
-
+  
   static calculateAdjustedEv(cards: { value: number; critical: boolean }[]): number {
-    let remainingDeck = [...cards]
-    let adjustedEV = 0
+  
+    const remainingDeck = [...cards];
+    const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0);
 
-    while (remainingDeck.some(card => card.critical)) {
-      const cardIndex = remainingDeck.findIndex(card => card.critical);
-      remainingDeck.splice(cardIndex, 1);
+    const cardIndex = remainingDeck.findIndex(card => card.critical);
+    remainingDeck.splice(cardIndex, 1);
 
-      adjustedEV += remainingDeck.reduce((sum, card) => sum + card.value, 0)/remainingDeck.length
-    }
+    let adjustedEV = 0;
 
-    return adjustedEV;
+    for (let i = 0; i < remainingDeck.length; i++) {
+      const card = remainingDeck[i];
+
+      // Contribution of the current card to EV
+      adjustedEV += card.value;
+
+      // Handle critical cards recursively
+      if (card.critical) {
+        adjustedEV += MightDeck.calculateAdjustedEv(remainingDeck); // Continue drawing
+      }
+    };
+
+    return nCrits * adjustedEV / remainingDeck.length;
   }
 
   static sort(cards: MightCard[]): MightCard[] {
