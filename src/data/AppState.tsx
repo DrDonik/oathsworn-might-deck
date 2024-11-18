@@ -138,7 +138,23 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
       })),
 
     discardAllDrawResults: () =>
-      setState((prev) => ({ ...prev, drawResults: [], drawResultsSelections: {} })),
+      setState((prev) => {
+        const updates = prev.isEncounter
+          ? prev.encounterDeck.clone()
+          : prev.oathswornDeck.clone();
+          updates.white.discardDisplay();
+          updates.yellow.discardDisplay();
+          updates.red.discardDisplay();
+          updates.black.discardDisplay();
+
+        return{
+          ...prev,
+          drawResults: [],
+          drawResultsSelections: {},
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates
+        }
+      }),
+
   };
 
   return (
