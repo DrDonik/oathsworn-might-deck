@@ -17,6 +17,7 @@ export type CMightCardProps = {
   value?: MightCard;
   new?: boolean;
   selected?: boolean;
+  critBonus?: boolean;
   onClick?: () => void;
   className?: string;
   children?: ReactNode;
@@ -33,8 +34,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   selected: {
-    border: `2px solid ${colors.red[800]}`,
-    margin: -2,
+    border: `4px solid ${colors.red[800]}`,
+    margin: -4,
   },
   white: { background: colors.grey[100], color: colors.common.black },
   yellow: { background: colors.yellow[700], color: colors.common.black },
