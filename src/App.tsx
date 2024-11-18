@@ -95,7 +95,7 @@ function App() {
                 color="error"
                 sx={{ flexGrow: 1 }}
                 disabled={app.state.drawResults.length === 0 || hasSelections}
-                onClick={app.actions.discardSelectedDrawResults}
+                onClick={app.actions.redrawSelectedDrawResults}
               >
                 Redraw Selected ({drawResultsSelections.length})
               </Button> : <Button

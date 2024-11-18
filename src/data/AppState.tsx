@@ -27,7 +27,7 @@ interface AppActions {
   confirmDraw: () => void;
   confirmDrawCriticals: () => void;
   toggleDrawResultSelection: (i: number, j: number) => void;
-  discardSelectedDrawResults: () => void;
+  redrawSelectedDrawResults: () => void;
   discardAllDrawResults: () => void;
 }
 
@@ -125,7 +125,7 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return { ...prev, drawResultsSelections: updates };
       }),
 
-    discardSelectedDrawResults: () => {
+    redrawSelectedDrawResults: () => {
       setState((prev) => {
         const cardsToDiscard = [...prev.drawResults.map(
           (v, i) => v.filter((_, j) => prev.drawResultsSelections[i]?.[j]))].flat();
