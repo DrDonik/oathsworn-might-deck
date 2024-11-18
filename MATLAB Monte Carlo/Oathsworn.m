@@ -13,15 +13,18 @@ fullDeck   = [6 6 3 3   ... % White cards
               6 6 3 3];     % Black cards
 
 %% User-specified script
-% drawPile = fullDeck - [6 5 3 3 0 0 0 0 0 0 0 0 0 0 0 0 0];
-drawPile = fullDeck;
+drawPile    = [1 1 2 2 ...
+               0 0 0 0 0 ...
+               0 0 0 0 ...
+               0 0 0 0];
+%drawPile = fullDeck;
 
 % Number of Monte Carlo runs
-nMC = 100000;
+nMC = 250000;
 
-for nW = 1:10
+%for nW = 1:10
   % Cards to draw:
-  NdrawWhite  = nW;
+  NdrawWhite  = 5;
   NdrawYellow = 0;
   NdrawRed    = 0;
   NdrawBlack  = 0;
@@ -34,28 +37,31 @@ for nW = 1:10
   [dmgPMF, blanksPMF, MblanksPMF] = drawCards(nMC,nRedrawTokens,fullDeck,dmgNumbers,drawPile,NdrawWhite,NdrawYellow,NdrawRed,NdrawBlack,resolveCritsImmediately);
   
   maxDmg = find(dmgPMF,1,'last') - 1;
+  EVdmg_ = sum((0:maxDmg).'.*dmgPMF(1:maxDmg+1))
+  HITdmg_ = sum((0:maxDmg).'.*dmgPMF(1:maxDmg+1))/sum(dmgPMF(2:maxDmg+1))
   figure(1);
   subplot(2,1,1);
-  sgtitle(['Drawing ' num2str(nW) ' white cards']);
+  %sgtitle(['Drawing ' num2str(nW) ' white cards']);
   bar(0:maxDmg,dmgPMF(1:maxDmg+1));
   ylabel('PMF');
   xlabel('Damage');
-  EVdmg_ = sum((0:maxDmg).'.*dmgPMF(1:maxDmg+1));
   
   % Mblanks: Missing-blanks, blanks that count for the purposes of missing (not blanks drawn on crits)
   maxMblanks = find(MblanksPMF,1,'last') - 1;
+  Pmiss_ = 1 - MblanksPMF(1) - MblanksPMF(2)
   subplot(2,1,2);
   bar(0:maxMblanks,MblanksPMF(1:maxMblanks+1))
   ylabel('PMF');
   xlabel('Missing-blanks');
-  Pmiss_ = 1 - MblanksPMF(1) - MblanksPMF(2);
   
-  EVdmg(nW,1) = EVdmg_; %#ok<SAGROW>
-  Pmiss(nW,1) = round(Pmiss_,15); %#ok<SAGROW>
-end
+%  EVdmg(nW,1) = EVdmg_; %#ok<SAGROW>
+%  HITdmg(nW,1) = HITdmg_;
+%  Pmiss(nW,1) = round(Pmiss_,15); %#ok<SAGROW>
+%  drawnow;
+%end
 
-nWhites = (1:10).';
-table(nWhites,EVdmg,Pmiss)
+%nWhites = (1:10).';
+%table(nWhites,EVdmg,Pmiss,HITdmg)
 
 %% Functions
 function [dmgPMF, blanksPMF, MblanksPMF] = drawCards(nMC,nRedrawTokens_,fullDeck,dmgNumbers,drawPile,NdrawWhite,NdrawYellow,NdrawRed,NdrawBlack,resolveCritsImmediately)
@@ -138,7 +144,7 @@ function [state, nRedrawTokens] = drawCard(state, nRedrawTokens, fullDeck, color
     state(35) = state(35) + 1;
   end
   
-  isCrit  = ismember(iCardDrawn,[4 9 13 17]);
+  isCrit = ismember(iCardDrawn,[4 9 13 17]);
   if isCrit && resolveCritsImmediately
     [state, nRedrawTokens] = drawCard(state, nRedrawTokens, fullDeck, colorIdxs, resolveCritsImmediately, true);
   end
