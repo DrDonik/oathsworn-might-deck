@@ -97,15 +97,26 @@ function App() {
                 Draw
               </Button>
           }
-          <Button
-            variant="outlined"
-            color="error"
-            sx={{ flexGrow: 1 }}
-            disabled={app.state.drawResults.length === 0 || hasSelections}
-            onClick={app.actions.discardAllDrawResults}
-          >
-            Confirm & Discard
-          </Button>
+          {
+            drawResultsSelections.length > 0 ?
+              <Button
+                variant="outlined"
+                color="error"
+                sx={{ flexGrow: 1 }}
+                disabled={app.state.drawResults.length === 0 || hasSelections}
+                onClick={app.actions.discardSelectedDrawResults}
+              >
+                Discard Selected ({drawResultsSelections.length})
+              </Button> : <Button
+                variant="outlined"
+                color="error"
+                sx={{ flexGrow: 1 }}
+                disabled={app.state.drawResults.length === 0 || hasSelections}
+                onClick={app.actions.discardAllDrawResults}
+              >
+                Confirm & Discard
+              </Button>
+          }
         </Toolbar>
       </AppBar>
     </div>

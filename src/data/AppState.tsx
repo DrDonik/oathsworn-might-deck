@@ -28,6 +28,7 @@ interface AppActions {
   confirmDrawCriticals: () => void;
   toggleDrawResultSelection: (i: number, j: number) => void;
   redrawSelectedDrawResults: () => void;
+  discardSelectedDrawResults: () => void;
   discardAllDrawResults: () => void;
 }
 
@@ -159,6 +160,32 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
       // After updating selections, immediately call confirmDraw
       setTimeout(() => actions.confirmDraw(), 0);
+    },
+
+    discardSelectedDrawResults: () => {
+      setState((prev) => {
+        const cardsToDiscard = [...prev.drawResults.map(
+          (v, i) => v.filter((_, j) => prev.drawResultsSelections[i]?.[j]))].flat();
+        const updates = prev.isEncounter
+        ? prev.encounterDeck.clone()
+        : prev.oathswornDeck.clone();
+        updates.white.discardDisplay(cardsToDiscard);
+        updates.yellow.discardDisplay(cardsToDiscard);
+        updates.red.discardDisplay(cardsToDiscard);
+        updates.black.discardDisplay(cardsToDiscard);
+
+        return {
+          ...prev,
+          drawResults: [
+            [], // empty array to remove the "new" tag from the result rows
+            ...prev.drawResults.map(
+              (v, i) => v.filter((_, j) => !prev.drawResultsSelections[i]?.[j])
+            )
+          ],
+          drawResultsSelections: {},
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates,
+       }
+      });
     },
 
     discardAllDrawResults: () =>
