@@ -126,16 +126,29 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
       }),
 
     discardSelectedDrawResults: () =>
-      setState((prev) => ({
-        ...prev,
-        drawResults: [
-          [], // empty array to remove the "new" tag from the result rows
-          ...prev.drawResults.map(
-            (v, i) => v.filter((_, j) => !prev.drawResultsSelections[i]?.[j])
-          )
-        ],
-        drawResultsSelections: {},
-      })),
+      setState((prev) => {
+        const cardsToDiscard = [...prev.drawResults.map(
+          (v, i) => v.filter((_, j) => prev.drawResultsSelections[i]?.[j]))].flat();
+        const updates = prev.isEncounter
+        ? prev.encounterDeck
+        : prev.oathswornDeck;
+        updates.white.discardDisplay(cardsToDiscard);
+        updates.yellow.discardDisplay(cardsToDiscard);
+        updates.red.discardDisplay(cardsToDiscard);
+        updates.black.discardDisplay(cardsToDiscard);
+
+        return {
+          ...prev,
+          drawResults: [
+            [], // empty array to remove the "new" tag from the result rows
+            ...prev.drawResults.map(
+              (v, i) => v.filter((_, j) => !prev.drawResultsSelections[i]?.[j])
+            )
+          ],
+          drawResultsSelections: {},
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates
+       }
+      }),
 
     discardAllDrawResults: () =>
       setState((prev) => {

@@ -77,9 +77,15 @@ export default class MightDeck {
     return result;
   }
 
-  discardDisplay() {
-    this.discard = [ ...this.discard, ...this.display];
-    this.display = [];
+  discardDisplay(cards?: MightCard[]): MightDeck {
+    if (cards) {
+      this.discard = [ ...this.discard, ...this.display.filter(card => cards.includes(card))];
+      this.display = [...this.display.filter(card => !cards.includes(card))];
+    } else {
+      this.discard = [ ...this.discard, ...this.display];
+      this.display = [];
+    }
+    return this;
   }
 
   get size(): number {
@@ -94,7 +100,7 @@ export default class MightDeck {
     return this.deck.reduce((count, card) => card.critical ? count + 1 : count, 0);
   }
 
-  get deck() {
+  get deck(): MightCard[] {
     return this._deck;
   }
 
@@ -105,7 +111,7 @@ export default class MightDeck {
     this.deckEV = cards.length ? this.deckNoBlanksEV*MightDeck.probZeroBlank(cards, this.discard, 1) : this.discardEV;
   }
 
-  get discard() {
+  get discard(): MightCard[] {
     return this._discard;
   }
 
