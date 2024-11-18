@@ -82,7 +82,7 @@ function App() {
                 variant="outlined"
                 color="primary"
                 sx={{ flexGrow: 1 }}
-                disabled={!hasSelections}
+                disabled={drawResultsSelections.length !== 0 || !hasSelections}
                 onClick={app.actions.confirmDraw}
               >
                 Draw
