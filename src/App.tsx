@@ -97,7 +97,7 @@ function App() {
                 disabled={app.state.drawResults.length === 0 || hasSelections}
                 onClick={app.actions.discardSelectedDrawResults}
               >
-                Discard Selected ({drawResultsSelections.length})
+                Redraw Selected ({drawResultsSelections.length})
               </Button> : <Button
                 variant="outlined"
                 color="error"

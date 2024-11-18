@@ -125,7 +125,7 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         return { ...prev, drawResultsSelections: updates };
       }),
 
-    discardSelectedDrawResults: () =>
+    discardSelectedDrawResults: () => {
       setState((prev) => {
         const cardsToDiscard = [...prev.drawResults.map(
           (v, i) => v.filter((_, j) => prev.drawResultsSelections[i]?.[j]))].flat();
@@ -137,6 +137,12 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         updates.red.discardDisplay(cardsToDiscard);
         updates.black.discardDisplay(cardsToDiscard);
 
+        const selections = cardsToDiscard.reduce((acc, card) => ({
+          ...acc,
+          [card.color]: acc[card.color] + 1
+        }), { ...defaultMightCardsSelection });
+
+
         return {
           ...prev,
           drawResults: [
@@ -146,9 +152,14 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
             )
           ],
           drawResultsSelections: {},
-          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates,
+          selections
        }
-      }),
+      });
+
+      // After updating selections, immediately call confirmDraw
+      setTimeout(() => actions.confirmDraw(), 0);
+    },
 
     discardAllDrawResults: () =>
       setState((prev) => {
