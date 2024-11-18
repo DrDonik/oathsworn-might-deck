@@ -130,8 +130,8 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const cardsToDiscard = [...prev.drawResults.map(
           (v, i) => v.filter((_, j) => prev.drawResultsSelections[i]?.[j]))].flat();
         const updates = prev.isEncounter
-        ? prev.encounterDeck
-        : prev.oathswornDeck;
+        ? prev.encounterDeck.clone()
+        : prev.oathswornDeck.clone();
         updates.white.discardDisplay(cardsToDiscard);
         updates.yellow.discardDisplay(cardsToDiscard);
         updates.red.discardDisplay(cardsToDiscard);

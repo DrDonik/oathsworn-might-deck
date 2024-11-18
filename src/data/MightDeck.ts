@@ -79,8 +79,21 @@ export default class MightDeck {
 
   discardDisplay(cards?: MightCard[]): MightDeck {
     if (cards) {
-      this.discard = [ ...this.discard, ...this.display.filter(card => cards.includes(card))];
-      this.display = [...this.display.filter(card => !cards.includes(card))];
+      // Iterate over each card to discard and remove one matching instance from display
+      const updatedDisplay = [...this.display];
+      const movedToDiscard: MightCard[] = [];
+
+      cards.forEach((cardToDiscard) => {
+        // Find the index of the first matching card in display
+        const index = updatedDisplay.findIndex(displayCard => !MightCard.compare(displayCard, cardToDiscard));
+        if (index !== -1) {
+          // Remove the matching card from display and move it to discard
+          movedToDiscard.push(updatedDisplay.splice(index, 1)[0]);
+        }
+      });
+
+      this.discard = [...this.discard, ...movedToDiscard];
+      this.display = updatedDisplay;
     } else {
       this.discard = [ ...this.discard, ...this.display];
       this.display = [];
