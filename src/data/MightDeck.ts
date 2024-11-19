@@ -201,7 +201,7 @@ ${summarize(MightDeck.sort(this.discard))}`;
       return 0; // No cards to draw from
     }
   
-    // Calculate the base EV from non-critical cards
+    // Calculate the base EV from non-blank cards
     const baseEV = nonBlankCards.reduce((sum, card) => sum + card.value, 0);
   
     // If all cards are critical, the EV becomes infinite theoretically.
