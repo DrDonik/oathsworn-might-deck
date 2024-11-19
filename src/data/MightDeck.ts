@@ -95,7 +95,12 @@ export default class MightDeck {
       this.discard = [...this.discard, ...movedToDiscard];
       this.display = updatedDisplay;
     } else {
-      this.discard = [ ...this.discard, ...this.display];
+      if (this.deck.length === 0) {
+        this.deck = [ ...this.discard, ...this.display];
+        this.discard = []
+      } else {
+        this.discard = [ ...this.discard, ...this.display];
+      }
       this.display = [];
     }
     return this;
