@@ -51,11 +51,11 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
 
     // Precompute probabilities of zero and one blanks for each color.
     const probZeroBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = MightDeck.probZeroBlank(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
+      acc[color] = MightDeck.zeroBlanksProbability(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
       return acc;
     }, {} as Record<typeof colors[number], number>);
     const probOneBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = MightDeck.probOneBlank(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
+      acc[color] = MightDeck.exactlyOneBlankProbability(app.state.oathswornDeck[color].deck, app.state.oathswornDeck[color].discard, app.state.selections[color]);
       return acc;
     }, {} as Record<typeof colors[number], number>);
     

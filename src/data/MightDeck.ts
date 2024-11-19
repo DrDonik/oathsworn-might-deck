@@ -121,7 +121,7 @@ export default class MightDeck {
     this._deck = cards;
     this.deckAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : this.discardAverage;
     this.deckNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : this.discardNoBlanksEV;
-    this.deckEV = cards.length ? this.deckNoBlanksEV*MightDeck.probZeroBlank(cards, this.discard, 1) : this.discardEV;
+    this.deckEV = cards.length ? this.deckNoBlanksEV*MightDeck.zeroBlanksProbability(cards, this.discard, 1) : this.discardEV;
   }
 
   get discard(): MightCard[] {
@@ -132,7 +132,7 @@ export default class MightDeck {
     this._discard = cards;
     this.discardAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : 0;
     this.discardNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : 0;
-    this.discardEV = cards.length ?  this.discardNoBlanksEV*MightDeck.probZeroBlank(cards, [], 1) : 0;
+    this.discardEV = cards.length ?  this.discardNoBlanksEV*MightDeck.zeroBlanksProbability(cards, [], 1) : 0;
 
     if (this.deck.length === 0) {
       this.deckAverage = this.discardAverage;
@@ -142,7 +142,7 @@ export default class MightDeck {
   }
 
 
-  static probZeroBlank(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
+  static zeroBlanksProbability(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
     const deckSize = cards.length;
     const blanksInDeck = cards.reduce((count, card) => !card.value ? count + 1 : count, 0);
 
@@ -155,7 +155,7 @@ export default class MightDeck {
     if (drawSize > deckSize) {
       // reaching this point, there is zero blank in the deck
 
-      return MightDeck.probZeroBlank(discards, [], drawSize-deckSize);
+      return MightDeck.zeroBlanksProbability(discards, [], drawSize-deckSize);
     }
 
     // reaching this point, there are some blanks in the deck
@@ -167,7 +167,7 @@ export default class MightDeck {
     return factorial(deckSize-blanksInDeck)/factorial(deckSize-blanksInDeck-drawSize)*factorial(deckSize-drawSize)/factorial(deckSize);
   }
 
-  static probOneBlank(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
+  static exactlyOneBlankProbability(cards: { value: number }[], discards: { value: number }[], drawSize: number): number {
     const deckSize = cards.length;
     const nBlanks = cards.reduce((count, card) => !card.value ? count + 1 : count, 0);
     
@@ -183,7 +183,7 @@ export default class MightDeck {
     if (drawSize > deckSize) {
       // reaching this point, there is 0 or 1 blank in the deck
 
-      return nBlanks ? MightDeck.probZeroBlank(discards, [], drawSize-deckSize) : MightDeck.probOneBlank(discards, [], drawSize-deckSize);
+      return nBlanks ? MightDeck.zeroBlanksProbability(discards, [], drawSize-deckSize) : MightDeck.exactlyOneBlankProbability(discards, [], drawSize-deckSize);
     }
 
     if(drawSize > deckSize-nBlanks+1)
