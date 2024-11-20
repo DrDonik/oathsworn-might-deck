@@ -25,7 +25,7 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
   const classes = useStyles();
   const damage = values.flat().reduce((p, c) => p + c.value, 0);
   const criticalHits = values.flat().filter((v) => v.critical).length;
-  const blanks = values.flat().filter((v) => !v.value).length;
+  const blanks = values.filter((_, index) => !app.state.critBonusRows.includes(app.state.drawResults.length - index)).flat().filter((v) => !v.value).length;
   const missed = !app.state.isEncounter && blanks >= 2;
 
   const colors = ["black", "red", "yellow", "white"] as const;
@@ -180,6 +180,7 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
                 <CMightCard
                   color={v.color}
                   new={i === 0}
+                  critBonus={app.state.critBonusRows.includes(app.state.drawResults.length - i)}
                   front
                   type={app.state.isEncounter ? 'encounter' : 'oathsworn'}
                   value={v}

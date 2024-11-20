@@ -16,6 +16,7 @@ interface AppState {
   encounterDeck: MightDeckOrganizer;
   oathswornDeck: MightDeckOrganizer;
   selections: MightCardsSelection;
+  critBonusRows: number[];
   drawResults: MightCard[][];
   drawResultsSelections: { [i: number]: { [j: number]: boolean } };
 }
@@ -43,6 +44,7 @@ const createDefaultAppState = (): AppState => ({
   encounterDeck: new MightDeckOrganizer(true),
   oathswornDeck: new MightDeckOrganizer(true),
   selections: { ...defaultMightCardsSelection },
+  critBonusRows: [],
   drawResults: [],
   drawResultsSelections: {},
 });
@@ -107,11 +109,13 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
           ...acc,
           [card.color]: acc[card.color] + 1
         }), { ...defaultMightCardsSelection });
+        const newCritBonusRows = [...prev.critBonusRows, prev.drawResults.length + 1];
 
         return {
           ...prev,
           selections,
           drawResultsSelections: {},
+          critBonusRows: newCritBonusRows,
         };
       });
     
@@ -202,7 +206,8 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
           ...prev,
           drawResults: [],
           drawResultsSelections: {},
-          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates,
+          critBonusRows: [],
         }
       }),
 

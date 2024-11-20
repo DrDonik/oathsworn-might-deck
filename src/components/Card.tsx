@@ -80,6 +80,12 @@ const useStyles = makeStyles((theme) => ({
     left: '-0.25rem',
     zIndex: 100,
   },
+  critTag: {
+    position: 'absolute',
+    top: '-0.25rem',
+    right: '-0.25rem',
+    zIndex: 100,
+  },
 }));
 
 const CMightCard: FC<CMightCardProps> = ({
@@ -89,6 +95,7 @@ const CMightCard: FC<CMightCardProps> = ({
   vertical,
   value,
   new: isNew,
+  critBonus = false,
   selected,
   onClick,
   className,
@@ -110,6 +117,7 @@ const CMightCard: FC<CMightCardProps> = ({
       onClick={onClick}
     >
       {isNew && <Chip label="New" size="small" color="warning" className={classes.tag} />}
+      {critBonus && <Chip label="Crit Bonus" size="small" color="primary" className={classes.critTag} />}
       <AspectRatio
         className={clsx(
           classes.bg,
