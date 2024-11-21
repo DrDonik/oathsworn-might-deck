@@ -5,6 +5,7 @@ import { FC } from 'react';
 import { useAppState } from '../data/AppState';
 import MightCard from '../data/MightCard';
 import CMightCard from './Card';
+import MightDeck from '../data/MightDeck';
 
 export type CResultsBoardProps = {
   values: MightCard[][];
@@ -65,23 +66,30 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
       1
     )
 
+    // Precompute the EV contributions for each color
+    const colorContributions: Record<string, number> = colors.reduce((acc, color) => {
+      const { deck, discard, deckAverage, nCrits } = app.state.oathswornDeck[color];
+      const deckSize = deck.length;
+      const selectedCount = app.state.selections[color];
+      const deckNoBlanksEV = MightDeck.calculateEV(deck, selectedCount, true, false);
+      const discardNoBlanksEV = 0; // MightDeck.calculateEV(discard, selectedCount, true, false);
+
+      const deckContribution =
+        deckSize > selectedCount && deckSize - selectedCount >= nCrits
+          ? deckNoBlanksEV
+          : deckSize * deckAverage;
+
+      const discardContribution =
+        deckSize > selectedCount
+          ? Math.max(nCrits - (deckSize - selectedCount), 0) * discardNoBlanksEV
+          : (selectedCount - deckSize + nCrits) * discardNoBlanksEV;
+
+      acc[color] = deckContribution + discardContribution;
+      return acc;
+    }, {} as Record<string, number>);
+
     // Calculate expected values of zero blank across all color decks.
-    evCorrected = hitChance*colors.reduce(
-      (ev, color) => {
-        const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[color];
-        const deckSize = deck.length;
-        const selectedCount = app.state.selections[color];
-      
-        const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-        ? selectedCount * deckNoBlanksEV
-        : deckSize * deckAverage;
-    
-        const discardContribution = deckSize > selectedCount
-        ? Math.max(nCrits - (deckSize - selectedCount), 0) * discardNoBlanksEV
-        : (selectedCount - deckSize + nCrits) * discardNoBlanksEV;
-        
-        return ev + deckContribution + discardContribution;
-      }, 0);
+    evCorrected = hitChance * colors.reduce((ev, color) => ev + colorContributions[color], 0);
     
     // Calculate probabilities of exactly one blank across all color decks.
     const probOneBlank = colors.map((excludedColor) =>
@@ -95,12 +103,14 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
 
     // Calculate expected values of exactly one blank across all color decks.
     const evOneBlank = colors.map((excludedColor) => {
-      const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[excludedColor];
+      const { deck, discard, deckAverage, nCrits} = app.state.oathswornDeck[excludedColor];
       const deckSize = deck.length;
       const selectedCount = app.state.selections[excludedColor];
+      const deckNoBlanksEV = MightDeck.calculateEV(deck, selectedCount-1, true, true);
+      const discardNoBlanksEV = 0; //MightDeck.calculateEV(discard, selectedCount, true, true);
     
       const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-      ? (selectedCount-1) * deckNoBlanksEV
+      ? deckNoBlanksEV
       : deckSize * deckAverage;
   
       const discardContribution = deckSize > selectedCount
@@ -112,26 +122,12 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
         .reduce(
           (prob, color) => prob * probZeroBlankSingleDeck[color],
           1
-        ) * probOneBlankSingleDeck[excludedColor]
+        )
+        * probOneBlankSingleDeck[excludedColor]
         * (colors
-        .filter((color) => color !== excludedColor)
-        .reduce(
-          (ev, color) => {
-            const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[color];
-            const deckSize = deck.length;
-            const selectedCount = app.state.selections[color];
-          
-            const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-            ? selectedCount * deckNoBlanksEV
-            : deckSize * deckAverage;
-        
-            const discardContribution = deckSize > selectedCount
-            ? Math.max(nCrits - (deckSize - selectedCount), 0) * discardNoBlanksEV
-            : (selectedCount - deckSize + nCrits) * discardNoBlanksEV;
-            
-            return ev + deckContribution + discardContribution;          
-          }, 0
-        ) + deckContribution + discardContribution)
+          .filter((color) => color !== excludedColor)
+          .reduce((ev, color) => ev + colorContributions[color], 0)
+          + deckContribution + discardContribution);
       }
     );
 
@@ -147,13 +143,13 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
     <Grid container spacing={1}>
       <Grid size={12} container>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-          <Typography>Expected Hit Value: {ev.toFixed(1)}</Typography>
+          <Typography>Expected Hit Value: {ev.toFixed(2)}</Typography>
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
           {!app.state.isEncounter ? <Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-        {!app.state.isEncounter ? <Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography> : '' }
+        {!app.state.isEncounter ? <Typography>Expected Value: {(evCorrected).toFixed(2)}</Typography> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
         </Grid>

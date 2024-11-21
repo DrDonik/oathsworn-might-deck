@@ -47,7 +47,7 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
         <Typography>Crits: {value?.nCrits ?? 0}</Typography>
       </Grid>
       <Grid size={{ xs: 4, sm: 4, md: 4}}>
-        <Typography>EV: {type === 'encounter' ? value?.deckAverage.toFixed(1) ?? 0 : value?.deckEV.toFixed(1) ?? 0}</Typography>
+        <Typography>EV: {type === 'encounter' ? value?.deckAverage.toFixed(1) ?? 0 : value?.deckEV.toFixed(2) ?? 0}</Typography>
       </Grid>
     </Grid>
   );
