@@ -206,40 +206,29 @@ ${summarize(MightDeck.sort(this.discard))}`;
       return 0; // No cards to draw from
     }
 
-    console.log('Calculating for the ' + cards[1].color + ' deck, drawing %d cards.', nCardsDrawn)
     const nCrits = cardsToConsider.reduce((count, card) => card.critical ? count + 1 : count, 0);
-    const cardsToConsiderNoCrits = cardsToConsider.filter((card) => !card.critical);
+    const critBaseValue = nCrits ? cardsToConsider[cardsToConsider.findIndex(card => card.critical)].value : 0;
 
     // Calculate the base EV from non-crit cards
+    const cardsToConsiderNoCrits = cardsToConsider.filter((card) => !card.critical);
     const nonCritsBaseValue = cardsToConsiderNoCrits.length ? cardsToConsiderNoCrits.reduce((sum, card) => sum + card.value, 0) / cardsToConsiderNoCrits.length : 0;
-    const critBaseValue = nCrits ? cardsToConsider[cardsToConsider.findIndex(card => card.critical)].value : 0;
-    console.log('Base EV (noncrit / crit):', nonCritsBaseValue, critBaseValue)
 
     let expectedValue = 0;
-    let totalProbability = 0;
     for (let nCritsDrawn = 0; nCritsDrawn <= nCrits && nCritsDrawn <= nCardsDrawn; nCritsDrawn++) {
-      console.log('Calculating drawing %d Crits from the ' + cards[1].color + ' deck.', nCritsDrawn);
       const probNCritsDrawn = hypergeometricProbability(cardsToConsider.length-nonCritsRemoved, nCardsDrawn, nCrits, nCritsDrawn);
-      console.log('Probability of drawing %d crits when drawing %d cards from the ' + cards[1].color + ' deck with %d cards with %d crits:', nCritsDrawn, nCardsDrawn, cardsToConsider.length-nonCritsRemoved, nCrits, probNCritsDrawn)
-      if (nonCritsRemoved) {console.log('(%d non-crits have been drawn.)', nonCritsRemoved)};
-      totalProbability += probNCritsDrawn;
 
-      const cardsCritsDrawnRemoved = [...cards];
-      for (let i = 1; i <= nCritsDrawn; i++) {
-        const cardIndex = cardsCritsDrawnRemoved.findIndex(card => card.critical);
-        cardsCritsDrawnRemoved.splice(cardIndex, 1);
-        console.log('Removed 1 crit from the ' + cards[1].color + ' deck. %d Crits are left.', cardsCritsDrawnRemoved.reduce((count, card) => card.critical ? count + 1 : count, 0));
+      if (probNCritsDrawn > 0) {
+        expectedValue += probNCritsDrawn*(nCardsDrawn-nCritsDrawn)*nonCritsBaseValue; //nonCritContribution
+        if (nCritsDrawn >=1) {
+          const cardsCritsDrawnRemoved = [...cardsToConsider];
+          for (let i = 1; i <= nCritsDrawn; i++) {
+            const cardIndex = cardsCritsDrawnRemoved.findIndex(card => card.critical);
+            cardsCritsDrawnRemoved.splice(cardIndex, 1);
+          }
+          expectedValue += probNCritsDrawn*nCritsDrawn*(critBaseValue + MightDeck.calculateEV(cardsCritsDrawnRemoved, nCritsDrawn, false, oneBlankRemoved, nCardsDrawn-nCritsDrawn+nonCritsRemoved)); //critContribution
+        }
       }
-
-      const critContribution = nCritsDrawn ? nCritsDrawn*(critBaseValue + MightDeck.calculateEV(cardsCritsDrawnRemoved, nCritsDrawn, false, oneBlankRemoved, nCardsDrawn-nCritsDrawn+nonCritsRemoved)) : 0;
-      const nonCritContribution = (nCardsDrawn-nCritsDrawn)*nonCritsBaseValue;
-      expectedValue += probNCritsDrawn*(nonCritContribution + critContribution);
-      
-      console.log('Expected Value:', expectedValue);
-      console.log('Non-Crit contribution:', nonCritContribution, probNCritsDrawn*nonCritContribution);
-      console.log('Crit contribution:', critContribution, probNCritsDrawn*critContribution);
     }
-    console.log('Done calculating for the ' + cards[1].color + ' deck, drawing %d cards. The total probability is ' + totalProbability.toFixed(2) + '. Expected value: ' + expectedValue.toFixed(2), nCardsDrawn);
     return expectedValue;
   }
 
