@@ -98,6 +98,7 @@ export default class MightDeck {
       if (this.deck.length === 0) {
         this.deck = [ ...this.discard, ...this.display];
         this.discard = []
+        this.shuffle();
       } else {
         this.discard = [ ...this.discard, ...this.display];
       }
