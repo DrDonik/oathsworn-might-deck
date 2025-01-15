@@ -221,24 +221,15 @@ ${summarize(MightDeck.sort(this.discard))}`;
     const remainingDeck = [...cards];
     const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0);
 
-    const cardIndex = remainingDeck.findIndex(card => card.critical);
-    remainingDeck.splice(cardIndex, 1);
-
     let adjustedEV = 0;
 
-    for (let i = 0; i < remainingDeck.length; i++) {
-      const card = remainingDeck[i];
+    for (let i = 0; i < nCrits; i++) {
+      const cardIndex = remainingDeck.findIndex(card => card.critical);
+      remainingDeck.splice(cardIndex, 1);
+      adjustedEV += remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length;
+    }
 
-      // Contribution of the current card to EV
-      adjustedEV += card.value;
-
-      // Handle critical cards recursively
-      if (card.critical) {
-        adjustedEV += MightDeck.calculateAdjustedEv(remainingDeck); // Continue drawing
-      }
-    };
-
-    return nCrits * adjustedEV / remainingDeck.length;
+    return adjustedEV;
   }
 
   static sort(cards: MightCard[]): MightCard[] {
