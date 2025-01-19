@@ -94,27 +94,27 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
     );
 
     // Calculate expected values of exactly one blank across all color decks.
-    const evOneBlank = colors.map((excludedColor) => {
-      const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[excludedColor];
+    const evOneBlank = colors.map((oneBlankColor) => {
+      const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[oneBlankColor];
       const deckSize = deck.length;
-      const selectedCount = app.state.selections[excludedColor];
+      const selectedCount = app.state.selections[oneBlankColor];
     
       const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
       ? (selectedCount-1) * deckNoBlanksEV
       : deckSize * deckAverage;
   
       const discardContribution = deckSize > selectedCount
-      ? Math.max(nCrits - (deckSize - selectedCount), 0) * discardNoBlanksEV
+      ? Math.max(nCrits - (deckSize - selectedCount + 1), 0) * discardNoBlanksEV
       : (selectedCount - deckSize + nCrits) * discardNoBlanksEV;
       
       return colors
-        .filter((color) => color !== excludedColor)
+        .filter((color) => color !== oneBlankColor)
         .reduce(
           (prob, color) => prob * probZeroBlankSingleDeck[color],
           1
-        ) * probOneBlankSingleDeck[excludedColor]
+        ) * probOneBlankSingleDeck[oneBlankColor]
         * (colors
-        .filter((color) => color !== excludedColor)
+        .filter((color) => color !== oneBlankColor)
         .reduce(
           (ev, color) => {
             const { deck, deckAverage, discardNoBlanksEV, nCrits , deckNoBlanksEV} = app.state.oathswornDeck[color];
