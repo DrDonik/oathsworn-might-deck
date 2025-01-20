@@ -195,6 +195,74 @@ Discard(${this.discard.length}):
 ${summarize(MightDeck.sort(this.discard))}`;
   }
 
+  /**
+   * Calculates the expected value (EV) of drawing a certain number of cards from a deck.
+   * 
+   * @param cards - Array of cards with their values and critical status.
+   * @param draws - Number of cards to draw.
+   * @param considerBlanks - Whether to consider blank cards in the calculation.
+   * @param nCritsDrawn - Number of critical cards already drawn.
+   * @param oneBlankDrawn - Whether a blank card has already been drawn.
+   * @returns {number} The expected value of the draws.
+   */
+  static calculateEV(
+    cards: { value: number; critical: boolean }[],
+    draws: number,
+    considerBlanks: boolean,
+    nCritsDrawn: number = 0,
+    oneBlankDrawn: boolean = false
+  ): number {
+    if (draws === 0) {
+      return 0;
+    }
+    
+    let remainingDeck = [...cards];
+
+    if (!considerBlanks) {
+      // blanks are considered elsewhere, remove them from the deck
+      remainingDeck = remainingDeck.filter(card => card.value !== 0);
+    } else {
+      if (oneBlankDrawn) {
+        // one blank card has already been drawn, remove it from the deck
+        const blankIndex = remainingDeck.findIndex(card => card.value === 0);
+        if (blankIndex >= 0) { remainingDeck.splice(blankIndex, 1); }
+      }  
+    }
+
+    if (remainingDeck.length === 0) {
+       // no cards left to draw from
+      return 0;
+    }
+  
+    console.log('remainingDeck', remainingDeck);
+    const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0) - nCritsDrawn;
+
+    if (nCrits === 0) {
+      // no critical cards left in the deck
+      return remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length * draws;
+    }
+
+    // Calculate the base EV from non-blank cards
+    const remainingDeckNoCrits = remainingDeck.filter(card => !card.critical);
+    const nonCritEv = remainingDeckNoCrits.reduce((sum, card) => sum + card.value, 0) / remainingDeckNoCrits.length;
+    const critCard = remainingDeck.find(card => card.critical);
+    const critValue = critCard ? critCard.value : 0;
+  
+    let adjustedEV = 0;
+    // Add the adjusted EV from critical chains
+    for (let critDrawCount = 0; critDrawCount <= nCrits && critDrawCount <= draws; critDrawCount++) {
+      const probCritDrawCount = hypergeometricProbability(remainingDeck.length - nCritsDrawn, draws, nCrits, critDrawCount);
+
+      if (critDrawCount > 0 && probCritDrawCount > 0) {
+        adjustedEV += probCritDrawCount * (critDrawCount * (critValue + MightDeck.calculateEV(cards, critDrawCount, true, critDrawCount + nCritsDrawn, oneBlankDrawn)) + (draws - critDrawCount) * nonCritEv);
+      } else {
+        adjustedEV += probCritDrawCount * (draws  * nonCritEv);
+      }
+    }
+
+    return adjustedEV;
+  }
+
   static calculateNoBlanksEV(cards: { value: number; critical: boolean }[]): number {
     const nonBlankCards = cards.filter((card) => card.value !== 0);
   
