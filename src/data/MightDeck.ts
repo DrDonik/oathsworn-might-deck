@@ -32,7 +32,13 @@ export default class MightDeck {
   }
 
   shuffle(): MightDeck {
-    this.deck.sort(() => (Math.random() >= 0.5 ? 1 : -1));
+    // Use Fisher-Yates (Knuth) shuffle algorithm for unbiased shuffling
+    for (let i = this.deck.length - 1; i > 0; i--) {
+      // Pick a random index from 0 to i
+      const j = Math.floor(Math.random() * (i + 1));
+      // Swap elements at i and j
+      [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+    }
     return this;
   }
 
@@ -65,9 +71,18 @@ export default class MightDeck {
     this.deck = this.deck.concat(this.discard); // TODO: need review, we should draw the deck item first
     this.discard = [];
     let result: MightCard[] = [];
+    
+    // Fix the bug: instead of concatenating result to itself (which doubles it each iteration),
+    // we should add all cards from the deck for each complete reshuffle
     for (let i = 0; i < reshuffleCount; i++) {
-      result = result.concat(result);
+      // Create a copy of all cards in the deck
+      const allCards = this.deck.map(card => card.clone());
+      // Add all cards to the result
+      result = result.concat(allCards);
+      // These cards have been "drawn" and should be displayed
+      this.display = [...this.display, ...allCards];
     }
+    
     this.shuffle();
     const remainder = times % this.size;
     const remaining = this.deck.splice(0, remainder);
@@ -130,8 +145,15 @@ export default class MightDeck {
   set deck(cards: MightCard[]) {
     this._deck = cards;
     this.deckAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : this.discardAverage;
-    this.deckNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : this.discardNoBlanksEV;
-    this.deckEV = cards.length ? this.deckNoBlanksEV*this.zeroBlanksProbability(1) : this.discardEV;
+    
+    // Special case for all critical cards
+    if (cards.length && cards.every(card => card.critical)) {
+      this.deckNoBlanksEV = cards.reduce((sum, card) => sum + card.value, 0);
+      this.deckEV = this.deckNoBlanksEV;
+    } else {
+      this.deckNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : this.discardNoBlanksEV;
+      this.deckEV = cards.length ? this.deckNoBlanksEV*this.zeroBlanksProbability(1) : this.discardEV;
+    }
   }
 
   get nDiscardedCriticals(): number {
@@ -274,18 +296,18 @@ ${summarize(MightDeck.sort(this.discard))}`;
       return 0; // No cards to draw from
     }
   
-    // Calculate the base EV from non-blank cards
-    const baseEV = nonBlankCards.reduce((sum, card) => sum + card.value, 0);
+    // Calculate the normalized base EV from non-blank cards
+    const baseEV = nonBlankCards.reduce((sum, card) => sum + card.value, 0) / nonBlankCards.length;
   
-    // If all cards are critical, the EV becomes infinite theoretically.
+    // If all cards are critical, apply proper normalization
     if (nonBlankCards.every(card => card.critical)) {
-      return baseEV; // Simplify for edge cases
+      return baseEV; // Return properly normalized EV
     }
   
     // Add the adjusted EV from critical chains
-    const criticalAdjustedEV = cards.some(card => card.critical) ? MightDeck.calculateAdjustedEv(cards) : 0;
+    const criticalAdjustedEV = cards.some(card => card.critical) ? MightDeck.calculateAdjustedEv(cards) / nonBlankCards.length : 0;
   
-    return (baseEV + criticalAdjustedEV) / nonBlankCards.length;
+    return baseEV + criticalAdjustedEV;
   }
   
   static calculateAdjustedEv(cards: { value: number; critical: boolean }[]): number {
