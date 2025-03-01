@@ -1,14 +1,14 @@
-export type MigthColor = 'white' | 'yellow' | 'red' | 'black';
+export type MightColor = 'white' | 'yellow' | 'red' | 'black';
 
 export default class MightCard {
   value: number;
   critical: boolean;
-  color: MigthColor;
+  color: MightColor;
 
   constructor(
     value: number,
     critical: boolean = false,
-    color: MigthColor = 'white',
+    color: MightColor = 'white',
   ) {
     this.value = value;
     this.critical = critical;
