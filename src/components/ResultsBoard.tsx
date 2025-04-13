@@ -165,14 +165,16 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
               // This deck has exactly one blank
               // For the deck with one blank, reduce selection by 1 and flag oneBlankDrawn
               const adjustedCount = Math.max(0, selectedCount - 1);
-              
-              if (adjustedCount <= colorDeck.length) {
+
+              if (selectedCount <= colorDeck.length) {
                 scenarioEV += MightDeck.calculateEV(colorDeck, adjustedCount, false, true);
               } else {
                 const fromDeck = colorDeck.length;
-                const fromDiscard = adjustedCount - fromDeck;
-                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false, true) + 
-                            MightDeck.calculateEV(discard, fromDiscard, false);
+                // Does the blank come from the deck or the discard?
+                const blankInDeck = colorDeck.some(card => card.value === 0);
+                const fromDiscard = blankInDeck ? adjustedCount - fromDeck + 1 : adjustedCount - fromDeck;
+                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false, blankInDeck) + 
+                            MightDeck.calculateEV(discard, fromDiscard, false, !blankInDeck);
               }
             } else {
               // All other decks have zero blanks
