@@ -211,13 +211,13 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
     <Grid container spacing={1}>
       <Grid size={12} container>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-          <Typography>Expected Hit Value: {ev.toFixed(2)}</Typography>
+          <Typography>Expected Hit Value: {ev.toFixed(1)}</Typography>
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
           {!app.state.isEncounter ? <Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-        {!app.state.isEncounter ? <Typography>Expected Value: {(evCorrected).toFixed(2)}</Typography> : '' }
+        {!app.state.isEncounter ? <Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
         </Grid>

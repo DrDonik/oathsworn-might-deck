@@ -310,9 +310,14 @@ ${summarize(MightDeck.sort(this.discard))}`;
       const nonCritCardCount = Math.max(0, actualDraws - critDrawCount);
       
       // Average value of non-critical cards
-      const nonCritAvg = nonCritCards.length > 0 
-        ? nonCritCards.reduce((sum, card) => sum + card.value, 0) / nonCritCards.length 
-        : 0;
+      let nonCritAvg = 0;
+      if (nonCritCards.length > 0) {
+        const numberedCards = nonCritCards.filter(card => card.value !== 0);
+        const nNumberedCards = numberedCards.length;
+        const numberedCardsSum = numberedCards.reduce((sum, card) => sum + card.value, 0) / nNumberedCards;
+        const nBlankCards = nonCritCards.filter(card => card.value === 0).length;
+        nonCritAvg = numberedCardsSum * (nNumberedCards - numberedCardsDrawn) / (nNumberedCards - numberedCardsDrawn + nBlankCards); 
+      }
       
       // Critical cards drawn
       const critCards = remainingDeck.filter(card => card.critical);
@@ -335,7 +340,7 @@ ${summarize(MightDeck.sort(this.discard))}`;
         
         // Calculate bonus EV separately for each critical drawn
         const bonusEV = critDrawCount > 0 
-          ? MightDeck.calculateEV(deckForBonusDraws, critDrawCount, true, oneBlankDrawn)
+          ? MightDeck.calculateEV(deckForBonusDraws, critDrawCount, true, oneBlankDrawn, numberedCardsDrawn + draws - critDrawCount)
           : 0;
         
         scenarioEV += bonusEV;
