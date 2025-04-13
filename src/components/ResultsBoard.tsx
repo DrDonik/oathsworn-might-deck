@@ -32,116 +32,179 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
   const colors = ["black", "red", "yellow", "white"] as const;
   let ev = 0;
   let evCorrected = 0;
-  let hitChance = 1;
+  let hitChance = 0;
 
   if (app.state.isEncounter) {
-
+    // For encounter mode, we simply calculate the average value without considering blanks/hits
     ev = colors.reduce((sum, color) => {
-      const { deckAverage, discardAverage } = app.state.encounterDeck[color];
-      const deckSize = app.state.encounterDeck[color].deck.length;
+      const { deck, discard } = app.state.encounterDeck[color];
       const selectedCount = app.state.selections[color];
-    
-      const deckContribution = Math.min(selectedCount, deckSize) * deckAverage;
-      const discardContribution = Math.max(selectedCount - deckSize, 0) * discardAverage;
-
-      return sum + deckContribution + discardContribution;
-    }, 0);
-
-  } else {
-
-    const deck = app.state.oathswornDeck;
-    // Precompute probabilities of zero and one blanks for each color.
-    const probZeroBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = deck[color].zeroBlanksProbability(app.state.selections[color]);
-      return acc;
-    }, {} as Record<typeof colors[number], number>);
-    const probOneBlankSingleDeck = colors.reduce((acc, color) => {
-      acc[color] = deck[color].exactlyOneBlankProbability(app.state.selections[color]);
-      return acc;
-    }, {} as Record<typeof colors[number], number>);
-    
-    // Calculate probabilities of zero blank across all color decks.
-    hitChance = colors.reduce(
-      (prob, color) => prob * probZeroBlankSingleDeck[color],
-      1
-    )
-
-    // Calculate expected values of zero blank across all color decks.
-    evCorrected = hitChance*colors.reduce(
-      (ev, color) => {
-        const { deck, discard, deckAverage, nCrits } = app.state.oathswornDeck[color];
-        const deckSize = deck.length;
-        const selectedCount = app.state.selections[color];
       
-        const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-        ? MightDeck.calculateEV(deck, selectedCount, false)
-        : deckSize * deckAverage;
-    
-        const discardContribution = deckSize > selectedCount
-        ? MightDeck.calculateEV(discard, Math.max(nCrits - (deckSize - selectedCount), 0), false)
-        : MightDeck.calculateEV(discard, selectedCount -  deckSize, false);
-        
-        return ev + deckContribution + discardContribution;
-      }, 0);
-    
-    // Calculate probabilities of exactly one blank across all color decks.
-    const probOneBlank = colors.map((excludedColor) =>
-      colors
-        .filter((color) => color !== excludedColor)
-        .reduce(
-          (prob, color) => prob * probZeroBlankSingleDeck[color],
-          1
-        ) * probOneBlankSingleDeck[excludedColor]
-    );
-
-    // Calculate expected values of exactly one blank across all color decks.
-    const evOneBlank = colors.map((oneBlankColor) => {
-      const { deck, discard, deckAverage, nCrits } = app.state.oathswornDeck[oneBlankColor];
-      const deckSize = deck.length;
-      const selectedCount = app.state.selections[oneBlankColor];
-    
-      const oneBlankDeckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-      ? MightDeck.calculateEV(deck, selectedCount - 1, false, true) // this is not entirely correct; we are implicitely assuming the blank is drawn from the deck, even if there are no blanks in the deck.
-      : deckSize * deckAverage;
-  
-      const oneBlankDiscardContribution = deckSize > selectedCount
-      ? MightDeck.calculateEV(discard, Math.max(nCrits - (deckSize - selectedCount), 0), false)
-      : MightDeck.calculateEV(discard, selectedCount -  deckSize, false);
+      // If no cards selected for this color, skip
+      if (selectedCount === 0) return sum;
       
-      return colors
-        .filter((color) => color !== oneBlankColor)
-        .reduce(
-          (prob, color) => prob * probZeroBlankSingleDeck[color],
-          1
-        ) * probOneBlankSingleDeck[oneBlankColor]
-        * (colors
-        .filter((color) => color !== oneBlankColor)
-        .reduce(
-          (ev, color) => {
-            const { deck, discard, deckAverage, nCrits } = app.state.oathswornDeck[color];
-            const deckSize = deck.length;
-            const selectedCount = app.state.selections[color];
-          
-            const deckContribution = deckSize > selectedCount && deckSize - selectedCount >= nCrits
-            ? MightDeck.calculateEV(deck, selectedCount, false)
-            : deckSize * deckAverage;
+      // Calculate expected value for each deck color
+      let colorEV = 0;
+      
+      if (selectedCount <= deck.length) {
+        // All cards come from main deck
+        colorEV = MightDeck.calculateEV(deck, selectedCount, true);
+      } else {
+        // Cards come from both main deck and discard
+        const fromDeck = deck.length;
+        const fromDiscard = selectedCount - fromDeck;
         
-            const discardContribution = deckSize > selectedCount
-            ? MightDeck.calculateEV(discard, Math.max(nCrits - (deckSize - selectedCount), 0), false)
-            : MightDeck.calculateEV(discard, selectedCount -  deckSize, false);
-            
-            return ev + deckContribution + discardContribution;          
-          }, 0
-        ) + oneBlankDeckContribution + oneBlankDiscardContribution)
+        colorEV = MightDeck.calculateEV(deck, fromDeck, true) + 
+                 MightDeck.calculateEV(discard, fromDiscard, true);
       }
-    );
+      
+      return sum + colorEV;
+    }, 0);
+    
+    // In encounter mode, hit chance is always 100% and expected values are the same
+    hitChance = 1;
+    evCorrected = ev;
+    
+  } else {
+    // For Oathsworn mode, we need to consider hit rules (0 or 1 blanks)
+    const deck = app.state.oathswornDeck;
+    
+    // Check if any cards are being drawn at all
+    const totalSelections = colors.reduce((sum, color) => sum + app.state.selections[color], 0);
+    
+    // Calculate all possible combinations of blank draws across decks
+    // Each scenario represents a possible distribution of blanks across decks
+    const scenarios = [
+      // Scenario 1: 0 blanks in all decks
+      { blanks: 0, probability: totalSelections === 0 ? 1 : 0, ev: 0 },
+      
+      // Scenarios 2-5: 1 blank in exactly one deck
+      ...colors.map(blankColor => ({
+        blanks: 1,
+        color: blankColor,
+        probability: 0,
+        ev: 0
+      }))
+    ];
+    
+    // Calculate probability of 0 blanks across all decks
+    if (totalSelections > 0) { // Only calculate if cards are actually selected
+      scenarios[0].probability = colors.reduce((prob, color) => {
+        const selectedCount = app.state.selections[color];
+        // If no cards selected for this color, doesn't affect probability
+        if (selectedCount === 0) return prob;
+        
+        return prob * deck[color].zeroBlanksProbability(selectedCount);
+      }, 1);
+    } // else we keep the initial probability of 1 set above
+    
+    // Calculate EV for scenario with 0 blanks
+    scenarios[0].ev = colors.reduce((total, color) => {
+      const selectedCount = app.state.selections[color];
+      if (selectedCount === 0) return total;
+      
+      const { deck: colorDeck, discard } = app.state.oathswornDeck[color];
+      
+      // Calculate EV based on draws from main deck and possibly discard
+      let colorEV = 0;
+      if (selectedCount <= colorDeck.length) {
+        colorEV = MightDeck.calculateEV(colorDeck, selectedCount, false);
+      } else {
+        const fromDeck = colorDeck.length;
+        const fromDiscard = selectedCount - fromDeck;
+        colorEV = MightDeck.calculateEV(colorDeck, fromDeck, false) + 
+                 MightDeck.calculateEV(discard, fromDiscard, false);
+      }
+      
+      return total + colorEV;
+    }, 0);
+    
+    // Calculate probabilities and EVs for 1-blank scenarios
+    if (totalSelections > 0) { // Only calculate if cards are actually selected
+      for (let i = 1; i <= 4; i++) {
+        const scenario = scenarios[i] as { blanks: number; color: typeof colors[number]; probability: number; ev: number };
+        const blankColor = scenario.color;
+        
+        // Calculate probability: P(1 blank in this color) * P(0 blanks in all others)
+        let probability = 1;
+        let hasSelections = false;
+        
+        colors.forEach(color => {
+          const selectedCount = app.state.selections[color];
+          if (selectedCount === 0) return; // Skip colors with no selections
+          
+          hasSelections = true;
+          
+          if (color === blankColor) {
+            // This is where the single blank should be
+            probability *= deck[color].exactlyOneBlankProbability(selectedCount);
+          } else {
+            // All other decks should have zero blanks
+            probability *= deck[color].zeroBlanksProbability(selectedCount);
+          }
+        });
+        
+        // If blankColor has no selections, this scenario is impossible
+        if (!hasSelections || app.state.selections[blankColor] === 0) {
+          probability = 0;
+        }
+        
+        scenario.probability = probability;
+        
+        // Calculate expected value for this scenario
+        let scenarioEV = 0;
+        
+        if (probability > 0) {
+          colors.forEach(color => {
+            const selectedCount = app.state.selections[color];
+            if (selectedCount === 0) return; // Skip colors with no selections
+            
+            const { deck: colorDeck, discard } = app.state.oathswornDeck[color];
+            
+            if (color === blankColor) {
+              // This deck has exactly one blank
+              // For the deck with one blank, reduce selection by 1 and flag oneBlankDrawn
+              const adjustedCount = Math.max(0, selectedCount - 1);
+              
+              if (adjustedCount <= colorDeck.length) {
+                scenarioEV += MightDeck.calculateEV(colorDeck, adjustedCount, false, true);
+              } else {
+                const fromDeck = colorDeck.length;
+                const fromDiscard = adjustedCount - fromDeck;
+                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false, true) + 
+                            MightDeck.calculateEV(discard, fromDiscard, false);
+              }
+            } else {
+              // All other decks have zero blanks
+              if (selectedCount <= colorDeck.length) {
+                scenarioEV += MightDeck.calculateEV(colorDeck, selectedCount, false);
+              } else {
+                const fromDeck = colorDeck.length;
+                const fromDiscard = selectedCount - fromDeck;
+                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false) + 
+                            MightDeck.calculateEV(discard, fromDiscard, false);
+              }
+            }
+          })
+        } // else scenarioEV remains 0 as initialized
+        
+        scenario.ev = scenarioEV;
+      }
+    } // else all 1-blank scenarios have 0 probability and 0 EV as initialized
+    
+    console.log('Scenario Probabilities:', scenarios.map(s => s.probability));
+    console.log('Scenario EVs:', scenarios.map(s => s.ev));
 
-    // Sum up all the probabilities for exactly one blank.
-    hitChance += probOneBlank.reduce((sum, value) => sum + value, 0);
-    evCorrected += evOneBlank.reduce((sum, value) => sum + value, 0);
-
-    ev = hitChance ? evCorrected / hitChance: 0;
-
+    // Calculate hit chance (sum of probabilities for 0 or 1 blank)
+    // These scenarios represent mutually exclusive events that result in a hit
+    // The sum should not exceed 1.0 (100%)
+    hitChance = Math.min(1.0, scenarios.reduce((sum, s) => sum + s.probability, 0));
+    
+    // Calculate expected values
+    evCorrected = scenarios.reduce((sum, s) => sum + (s.probability * s.ev), 0);
+    
+    // Expected value given a hit (for display as "Expected Hit Value")
+    ev = hitChance > 0 ? evCorrected / hitChance : 0;
   }
 
   return (

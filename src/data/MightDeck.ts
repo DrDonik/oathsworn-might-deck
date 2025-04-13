@@ -146,13 +146,23 @@ export default class MightDeck {
     this._deck = cards;
     this.deckAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : this.discardAverage;
     
-    // Special case for all critical cards
-    if (cards.length && cards.every(card => card.critical)) {
-      this.deckNoBlanksEV = cards.reduce((sum, card) => sum + card.value, 0);
-      this.deckEV = this.deckNoBlanksEV;
+    if (cards.length === 0) {
+      // If deck is empty, use discard values
+      this.deckNoBlanksEV = this.discardNoBlanksEV;
+      this.deckEV = this.discardEV;
     } else {
-      this.deckNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : this.discardNoBlanksEV;
-      this.deckEV = cards.length ? this.deckNoBlanksEV*this.zeroBlanksProbability(1) : this.discardEV;
+      // Calculate EV for a single card with no blanks and with blanks considered
+      this.deckNoBlanksEV = MightDeck.calculateNoBlanksEV(cards);
+      
+      // For overall EV, consider both zero and one blank scenarios
+      // P(0 blanks) + P(1 blank) represents hit chance
+      const hitProbability = this.zeroBlanksProbability(1) + this.exactlyOneBlankProbability(1);
+      
+      // EV when drawing 1 card (considering blanks)
+      const ev1 = MightDeck.calculateEV(cards, 1, true, false);
+      
+      // Scale properly based on hit probability
+      this.deckEV = hitProbability > 0 ? ev1 / hitProbability : 0;
     }
   }
 
@@ -167,9 +177,28 @@ export default class MightDeck {
   set discard(cards: MightCard[]) {
     this._discard = cards;
     this.discardAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : 0;
-    this.discardNoBlanksEV = cards.length ? MightDeck.calculateNoBlanksEV(cards) : 0;
-    this.discardEV = cards.length ?  this.discardNoBlanksEV*this.zeroBlanksProbability(1) : 0;
+    
+    if (cards.length === 0) {
+      this.discardNoBlanksEV = 0;
+      this.discardEV = 0;
+    } else {
+      // Calculate EV for a single card with no blanks
+      this.discardNoBlanksEV = MightDeck.calculateNoBlanksEV(cards);
+      
+      // For overall EV, consider both zero and one blank scenarios
+      // P(0 blanks) + P(1 blank) represents hit chance
+      const hitProbability = 
+        hypergeometricProbability(cards.length, 1, cards.filter(c => !c.value).length, 0) + 
+        hypergeometricProbability(cards.length, 1, cards.filter(c => !c.value).length, 1);
+      
+      // EV when drawing 1 card (considering blanks)
+      const ev1 = MightDeck.calculateEV(cards, 1, true, false);
+      
+      // Scale properly based on hit probability
+      this.discardEV = hitProbability > 0 ? ev1 / hitProbability : 0;
+    }
 
+    // If main deck is empty, use discard values
     if (this.deck.length === 0) {
       this.deckAverage = this.discardAverage;
       this.deckEV = this.discardEV;
@@ -224,106 +253,118 @@ ${summarize(MightDeck.sort(this.discard))}`;
    * @param draws - Number of cards to draw.
    * @param considerBlanks - Whether to consider blank cards in the calculation.
    * @param oneBlankDrawn - Whether a blank card has already been drawn.
+   * @param numberedCardsDrawn - Number of numbered cards already drawn.
    * @returns {number} The expected value of the draws.
    */
   static calculateEV(
     cards: { value: number; critical: boolean }[],
     draws: number,
     considerBlanks: boolean,
-    oneBlankDrawn: boolean = false
+    oneBlankDrawn: boolean = false,
+    numberedCardsDrawn: number = 0,
   ): number {
     if (draws === 0) {
       return 0;
     }
     
+    // Make a copy of the deck to work with
     let remainingDeck = [...cards];
 
     if (!considerBlanks) {
       // blanks are considered elsewhere, remove them from the deck
       remainingDeck = remainingDeck.filter(card => card.value !== 0);
-    } else {
-      if (oneBlankDrawn) {
-        // one blank card has already been drawn, remove it from the deck
-        const blankIndex = remainingDeck.findIndex(card => card.value === 0);
-        if (blankIndex >= 0) { remainingDeck.splice(blankIndex, 1); }
-      }  
+    } else if (oneBlankDrawn) {
+      // one blank card has already been drawn, remove it from the deck
+      const blankIndex = remainingDeck.findIndex(card => card.value === 0);
+      if (blankIndex >= 0) { remainingDeck.splice(blankIndex, 1); }
     }
 
-    if (remainingDeck.length === 0) {
-       // no cards left to draw from
+    if (remainingDeck.length === 0 || draws === 0) {
       return 0;
     }
-  
+    
+    // If drawing more cards than available, adjust draws
+    const actualDraws = Math.min(draws, remainingDeck.length);
+    
+    // Count criticals
     const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0);
-
+    
+    // If no criticals, simple calculation
     if (nCrits === 0) {
-      // no critical cards left in the deck
-      const adjustedEV = remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length * draws;
-
-      return adjustedEV;
+      const avgValue = remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length;
+      return avgValue * actualDraws;
     }
-
-    // Calculate the base EV from non-blank cards
-    const remainingDeckNoCrits = remainingDeck.filter(card => !card.critical);
-    const nonCritEv = remainingDeckNoCrits.reduce((sum, card) => sum + card.value, 0) / remainingDeckNoCrits.length;
-    const critCard = remainingDeck.find(card => card.critical);
-    const critValue = critCard ? critCard.value : 0;
-  
-    let adjustedEV = 0;
-    // Add the adjusted EV from critical chains
-    for (let critDrawCount = 0; critDrawCount <= nCrits && critDrawCount <= draws; critDrawCount++) {
-      const probCritDrawCount = hypergeometricProbability(remainingDeck.length, draws, nCrits, critDrawCount);
-
+    
+    // For critical cards calculations
+    let totalEV = 0;
+    
+    // Calculate probability and EV for each possible number of critical cards drawn
+    for (let critDrawCount = 0; critDrawCount <= Math.min(nCrits, actualDraws); critDrawCount++) {
+      // Probability of drawing exactly critDrawCount critical cards
+      const probCritDrawCount = hypergeometricProbability(
+        remainingDeck.length, actualDraws, nCrits, critDrawCount
+      );
+      
+      // Calculate base EV for the non-critical cards in the initial draw
+      const nonCritCards = remainingDeck.filter(card => !card.critical);
+      const nonCritCardCount = Math.max(0, actualDraws - critDrawCount);
+      
+      // Average value of non-critical cards
+      const nonCritAvg = nonCritCards.length > 0 
+        ? nonCritCards.reduce((sum, card) => sum + card.value, 0) / nonCritCards.length 
+        : 0;
+      
+      // Critical cards drawn
+      const critCards = remainingDeck.filter(card => card.critical);
+      const critAvg = critCards.length > 0
+        ? critCards.reduce((sum, card) => sum + card.value, 0) / critCards.length
+        : 0;
+      
+      // Base EV for this scenario
+      let scenarioEV = (nonCritCardCount * nonCritAvg) + (critDrawCount * critAvg);
+      
+      // Add bonus draws from crits
       if (critDrawCount > 0) {
-        let reducedDeck = [...cards];
+        // Remove the drawn criticals from deck for bonus draws
+        let deckForBonusDraws = [...cards];
+        // Remove criticals that were drawn
         for (let i = 0; i < critDrawCount; i++) {
-          const cardIndex = reducedDeck.findIndex(card => card.critical);
-          reducedDeck.splice(cardIndex, 1);
+          const critIndex = deckForBonusDraws.findIndex(card => card.critical);
+          if (critIndex >= 0) deckForBonusDraws.splice(critIndex, 1);
         }
-        adjustedEV += probCritDrawCount * (critDrawCount * (critValue + MightDeck.calculateEV(reducedDeck, critDrawCount, true, oneBlankDrawn)) + (draws - critDrawCount) * nonCritEv);
-      } else {
-        adjustedEV += probCritDrawCount * (draws  * nonCritEv);
+        
+        // Calculate bonus EV separately for each critical drawn
+        const bonusEV = critDrawCount > 0 
+          ? MightDeck.calculateEV(deckForBonusDraws, critDrawCount, true, oneBlankDrawn)
+          : 0;
+        
+        scenarioEV += bonusEV;
       }
+      
+      // Add weighted scenario EV to total
+      totalEV += probCritDrawCount * scenarioEV;
     }
-
-    return adjustedEV;
+    
+    return totalEV;
   }
 
   static calculateNoBlanksEV(cards: { value: number; critical: boolean }[]): number {
+    // Filter out blanks
     const nonBlankCards = cards.filter((card) => card.value !== 0);
   
     if (nonBlankCards.length === 0) {
-      return 0; // No cards to draw from
+      return 0; // No non-blank cards to draw from
     }
-  
-    // Calculate the normalized base EV from non-blank cards
-    const baseEV = nonBlankCards.reduce((sum, card) => sum + card.value, 0) / nonBlankCards.length;
-  
-    // If all cards are critical, apply proper normalization
+    
+    // Special case: if all cards are critical
     if (nonBlankCards.every(card => card.critical)) {
-      return baseEV; // Return properly normalized EV
+      return nonBlankCards.reduce((sum, card) => sum + card.value, 0);
     }
-  
-    // Add the adjusted EV from critical chains
-    const criticalAdjustedEV = cards.some(card => card.critical) ? MightDeck.calculateAdjustedEv(cards) / nonBlankCards.length : 0;
-  
-    return baseEV + criticalAdjustedEV;
-  }
-  
-  static calculateAdjustedEv(cards: { value: number; critical: boolean }[]): number {
-  
-    const remainingDeck = [...cards];
-    const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0);
-
-    let adjustedEV = 0;
-
-    for (let i = 0; i < nCrits; i++) {
-      const cardIndex = remainingDeck.findIndex(card => card.critical);
-      remainingDeck.splice(cardIndex, 1);
-      adjustedEV += remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length;
-    }
-
-    return adjustedEV;
+    
+    // Calculate the average value of drawing 1 non-blank card
+    const singleDrawEV = MightDeck.calculateEV(nonBlankCards, 1, true, false);
+    
+    return singleDrawEV;
   }
 
   static sort(cards: MightCard[]): MightCard[] {
