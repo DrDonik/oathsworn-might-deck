@@ -19,6 +19,7 @@ export type CMightCardProps = {
   selected?: boolean;
   critBonus?: boolean;
   onClick?: () => void;
+  onContextMenu?: (event: React.MouseEvent<HTMLDivElement>) => void;
   className?: string;
   children?: ReactNode;
 };
@@ -98,6 +99,7 @@ const CMightCard: FC<CMightCardProps> = ({
   critBonus = false,
   selected,
   onClick,
+  onContextMenu,
   className,
   children,
 }) => {
@@ -115,6 +117,7 @@ const CMightCard: FC<CMightCardProps> = ({
         className,
       )}
       onClick={onClick}
+      onContextMenu={onContextMenu || undefined}
     >
       {isNew && <Chip label="New" size="small" color="warning" className={classes.tag} />}
       {critBonus && <Chip label="Crit Bonus" size="small" color="primary" className={classes.critTag} />}

@@ -9,6 +9,7 @@ export type CMigthDeckProps = {
   value?: MightDeck;
   selected?: number;
   onSelect?: () => void;
+  onDeselect?: () => void;
 };
 
 const CMigthDeck: FC<CMigthDeckProps> = ({
@@ -16,6 +17,7 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
   value,
   selected = 0,
   onSelect,
+  onDeselect,
 }) => {
   return (
     <Grid container spacing={1}>
@@ -36,6 +38,12 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
             color={value?.dice?.color}
             value={value?.deck?.[0]}
             onClick={onSelect}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              if (selected > 0 && onDeselect) {
+                onDeselect();
+              }
+            }}
           />
           <Badge color="primary" badgeContent={selected} sx={{ float: 'right' }} />
         </Box>
