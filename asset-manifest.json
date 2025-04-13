@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/oathsworn-might-deck/static/css/main.cc19575f.css",
-    "main.js": "/oathsworn-might-deck/static/js/main.efc9d9d0.js",
+    "main.js": "/oathsworn-might-deck/static/js/main.f1a6c71d.js",
     "static/js/453.0cf12462.chunk.js": "/oathsworn-might-deck/static/js/453.0cf12462.chunk.js",
     "static/media/card_oathsworn_b.png": "/oathsworn-might-deck/static/media/card_oathsworn_b.d1d4bdce42f77c29d427.png",
     "static/media/card_oathsworn_f.png": "/oathsworn-might-deck/static/media/card_oathsworn_f.5eead744f16f4bc93dee.png",
@@ -9,11 +9,11 @@
     "static/media/card_encounter_f.png": "/oathsworn-might-deck/static/media/card_encounter_f.8a0bea94e0c80918924f.png",
     "index.html": "/oathsworn-might-deck/index.html",
     "main.cc19575f.css.map": "/oathsworn-might-deck/static/css/main.cc19575f.css.map",
-    "main.efc9d9d0.js.map": "/oathsworn-might-deck/static/js/main.efc9d9d0.js.map",
+    "main.f1a6c71d.js.map": "/oathsworn-might-deck/static/js/main.f1a6c71d.js.map",
     "453.0cf12462.chunk.js.map": "/oathsworn-might-deck/static/js/453.0cf12462.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.cc19575f.css",
-    "static/js/main.efc9d9d0.js"
+    "static/js/main.f1a6c71d.js"
   ]
 }
