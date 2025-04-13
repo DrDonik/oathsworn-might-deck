@@ -37,7 +37,7 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
   if (app.state.isEncounter) {
     // For encounter mode, we simply calculate the average value without considering blanks/hits
     ev = colors.reduce((sum, color) => {
-      const { deck, discard } = app.state.encounterDeck[color];
+      const { deck, deckAverage, discardAverage } = app.state.encounterDeck[color];
       const selectedCount = app.state.selections[color];
       
       // If no cards selected for this color, skip
@@ -48,14 +48,13 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
       
       if (selectedCount <= deck.length) {
         // All cards come from main deck
-        colorEV = MightDeck.calculateEV(deck, selectedCount, true);
+        colorEV = selectedCount*deckAverage;
       } else {
         // Cards come from both main deck and discard
         const fromDeck = deck.length;
         const fromDiscard = selectedCount - fromDeck;
         
-        colorEV = MightDeck.calculateEV(deck, fromDeck, true) + 
-                 MightDeck.calculateEV(discard, fromDiscard, true);
+        colorEV = fromDeck*deckAverage + fromDiscard*discardAverage;
       }
       
       return sum + colorEV;
