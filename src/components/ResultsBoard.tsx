@@ -1,4 +1,4 @@
-import { Chip, Typography, colors } from '@mui/material';
+import { Chip, Typography, colors, Tooltip } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { makeStyles } from '@mui/styles';
 import { FC } from 'react';
@@ -212,13 +212,13 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
     <Grid container spacing={1}>
       <Grid size={12} container>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-          <Typography>Expected Hit Value: {ev.toFixed(1)}</Typography>
+          <Tooltip title="The damage you can expect in case of a hit."><Typography>Expected Hit Value: {ev.toFixed(1)}</Typography></Tooltip>
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-          {!app.state.isEncounter ? <Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography> : '' }
+          {!app.state.isEncounter ? <Tooltip title="The chance for a hit."><Typography>Hit Chance: {(hitChance*100).toFixed(0)}%</Typography></Tooltip> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
-        {!app.state.isEncounter ? <Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography> : '' }
+        {!app.state.isEncounter ? <Tooltip title="The expected value, including hits and misses. Maximise this number for the best outcome on average."><Typography>Expected Value: {(evCorrected).toFixed(1)}</Typography></Tooltip> : '' }
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3}}>
         </Grid>
