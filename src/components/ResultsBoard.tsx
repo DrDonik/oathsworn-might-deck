@@ -158,22 +158,31 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
             const selectedCount = app.state.selections[color];
             if (selectedCount === 0) return; // Skip colors with no selections
             
-            const { deck: colorDeck, discard } = app.state.oathswornDeck[color];
+            const { deck, discard } = app.state.oathswornDeck[color];
             
             if (color === blankColor) {
-              // This deck has exactly one blank
-              // For the deck with one blank, reduce selection by 1 and flag oneBlankDrawn
-              const adjustedCount = Math.max(0, selectedCount - 1);
-
-              if (selectedCount <= colorDeck.length) {
-                scenarioEV += MightDeck.calculateEV(colorDeck, adjustedCount, false, true);
+              // This deck draws exactly one blank
+              // For the deck with one blank drawn, reduce selection by 1 and flag oneBlankDrawn
+              // Is there at least one blank in this deck?
+              const blankInDeck = deck.some(card => card.value === 0);
+              if (blankInDeck) {
+                if (selectedCount - 1 <= deck.length) {
+                  scenarioEV += MightDeck.calculateEV(deck, selectedCount - 1, false, true);
+                } else {
+                  const fromDeck = deck.length - 1;
+                  const fromDiscard = selectedCount - fromDeck;
+                  scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, true) + 
+                              MightDeck.calculateEV(discard, fromDiscard, false, false);
+                }
               } else {
-                const fromDeck = colorDeck.length;
-                // Does the blank come from the deck or the discard?
-                const blankInDeck = colorDeck.some(card => card.value === 0);
-                const fromDiscard = blankInDeck ? adjustedCount - fromDeck + 1 : adjustedCount - fromDeck;
-                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false, blankInDeck) + 
-                            MightDeck.calculateEV(discard, fromDiscard, false, !blankInDeck);
+                if (selectedCount <= deck.length) {
+                  scenarioEV += MightDeck.calculateEV(deck, selectedCount, false, true);
+                } else {
+                  const fromDeck = deck.length;
+                  const fromDiscard = selectedCount - 1 - fromDeck;
+                  scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, false) + 
+                              MightDeck.calculateEV(discard, fromDiscard, false, true);
+                }
               }
             } else {
               // All other decks have zero blanks
