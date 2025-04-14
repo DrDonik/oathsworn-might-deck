@@ -102,16 +102,16 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
       const selectedCount = app.state.selections[color];
       if (selectedCount === 0) return total;
       
-      const { deck: colorDeck, discard } = app.state.oathswornDeck[color];
+      const { deck, discard } = app.state.oathswornDeck[color];
       
       // Calculate EV based on draws from main deck and possibly discard
       let colorEV = 0;
-      if (selectedCount <= colorDeck.length) {
-        colorEV = MightDeck.calculateEV(colorDeck, selectedCount, false);
+      if (selectedCount <= deck.length) {
+        colorEV = MightDeck.calculateEV(deck, selectedCount, false);
       } else {
-        const fromDeck = colorDeck.length;
+        const fromDeck = deck.length;
         const fromDiscard = selectedCount - fromDeck;
-        colorEV = MightDeck.calculateEV(colorDeck, fromDeck, false) + 
+        colorEV = MightDeck.calculateEV(deck, fromDeck, false) + 
                  MightDeck.calculateEV(discard, fromDiscard, false);
       }
       
@@ -177,12 +177,12 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
               }
             } else {
               // All other decks have zero blanks
-              if (selectedCount <= colorDeck.length) {
-                scenarioEV += MightDeck.calculateEV(colorDeck, selectedCount, false);
+              if (selectedCount <= deck.length) {
+                scenarioEV += MightDeck.calculateEV(deck, selectedCount, false);
               } else {
-                const fromDeck = colorDeck.length;
+                const fromDeck = deck.length;
                 const fromDiscard = selectedCount - fromDeck;
-                scenarioEV += MightDeck.calculateEV(colorDeck, fromDeck, false) + 
+                scenarioEV += MightDeck.calculateEV(deck, fromDeck, false) + 
                             MightDeck.calculateEV(discard, fromDiscard, false);
               }
             }

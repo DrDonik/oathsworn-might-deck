@@ -253,41 +253,37 @@ ${summarize(MightDeck.sort(this.discard))}`;
     if (remainingDeck.length === 0 || draws === 0) {
       return 0;
     }
-    
-    // If drawing more cards than available, adjust draws
-    const actualDraws = Math.min(draws, remainingDeck.length);
-    
+        
     // Count criticals
     const nCrits = remainingDeck.reduce((count, card) => card.critical ? count + 1 : count, 0);
     
     // If no criticals, simple calculation
     if (nCrits === 0) {
       const avgValue = remainingDeck.reduce((sum, card) => sum + card.value, 0) / remainingDeck.length;
-      return avgValue * actualDraws;
+      return avgValue * draws;
     }
     
     // For critical cards calculations
     let totalEV = 0;
     
     // Calculate probability and EV for each possible number of critical cards drawn
-    for (let critDrawCount = 0; critDrawCount <= Math.min(nCrits, actualDraws); critDrawCount++) {
+    for (let critDrawCount = 0; critDrawCount <= Math.min(nCrits, draws); critDrawCount++) {
       // Probability of drawing exactly critDrawCount critical cards
       const probCritDrawCount = hypergeometricProbability(
-        remainingDeck.length, actualDraws, nCrits, critDrawCount
+        remainingDeck.length, draws, nCrits, critDrawCount
       );
       
       // Calculate base EV for the non-critical cards in the initial draw
       const nonCritCards = remainingDeck.filter(card => !card.critical);
-      const nonCritCardCount = Math.max(0, actualDraws - critDrawCount);
+      const nonCritCardCount = Math.max(0, draws - critDrawCount);
       
       // Average value of non-critical cards
       let nonCritAvg = 0;
       if (nonCritCards.length > 0) {
-        const numberedCards = nonCritCards.filter(card => card.value !== 0);
-        const nNumberedCards = numberedCards.length;
-        const numberedCardsSum = numberedCards.reduce((sum, card) => sum + card.value, 0) / nNumberedCards;
-        const nBlankCards = nonCritCards.filter(card => card.value === 0).length;
-        nonCritAvg = numberedCardsSum * (nNumberedCards - numberedCardsDrawn) / (nNumberedCards - numberedCardsDrawn + nBlankCards); 
+        const nNumberedCards = nonCritCards.reduce((count, card) => card.value !== 0 ? count + 1 : count, 0);
+        const numberedCardsAvg = nNumberedCards ? nonCritCards.reduce((sum, card) => sum + card.value, 0) / nNumberedCards : 0;
+        const nBlankCards = nonCritCards.reduce((count, card) => card.value === 0 ? count + 1 : count, 0);
+        nonCritAvg = numberedCardsAvg * (nNumberedCards - numberedCardsDrawn) / (nNumberedCards - numberedCardsDrawn + nBlankCards); 
       }
       
       // Critical cards drawn
