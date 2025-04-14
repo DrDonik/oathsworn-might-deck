@@ -102,17 +102,22 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
       const selectedCount = app.state.selections[color];
       if (selectedCount === 0) return total;
       
-      const { deck, discard } = app.state.oathswornDeck[color];
+      const { deck, discard, nCrits, deckAverage, discardEV } = app.state.oathswornDeck[color];
       
       // Calculate EV based on draws from main deck and possibly discard
       let colorEV = 0;
-      if (selectedCount <= deck.length) {
+      if (selectedCount <= deck.length - nCrits) {
         colorEV = MightDeck.calculateEV(deck, selectedCount, false);
       } else {
         const fromDeck = deck.length;
         const fromDiscard = selectedCount - fromDeck;
-        colorEV = MightDeck.calculateEV(deck, fromDeck, false) + 
-                 MightDeck.calculateEV(discard, fromDiscard, false);
+        if (selectedCount <= deck.length) {
+          colorEV = fromDeck*deckAverage + (selectedCount + nCrits - fromDeck)*discardEV +
+          MightDeck.calculateEV(discard, fromDiscard, false);
+        } else {
+          colorEV = MightDeck.calculateEV(deck, fromDeck, false) + 
+          MightDeck.calculateEV(discard, fromDiscard, false);
+        }
       }
       
       return total + colorEV;
@@ -158,41 +163,50 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
             const selectedCount = app.state.selections[color];
             if (selectedCount === 0) return; // Skip colors with no selections
             
-            const { deck, discard } = app.state.oathswornDeck[color];
+            const { deck, discard, nCrits, deckAverage, discardEV } = app.state.oathswornDeck[color];
             
             if (color === blankColor) {
               // This deck draws exactly one blank
               // For the deck with one blank drawn, reduce selection by 1 and flag oneBlankDrawn
               // Is there at least one blank in this deck?
-              const blankInDeck = deck.some(card => card.value === 0);
-              if (blankInDeck) {
-                if (selectedCount - 1 <= deck.length) {
-                  scenarioEV += MightDeck.calculateEV(deck, selectedCount - 1, false, true);
-                } else {
-                  const fromDeck = deck.length - 1;
-                  const fromDiscard = selectedCount - fromDeck;
-                  scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, true) + 
-                              MightDeck.calculateEV(discard, fromDiscard, false, false);
-                }
+              if (selectedCount <= deck.length - nCrits) {
+                scenarioEV += MightDeck.calculateEV(deck, selectedCount - 1, false, true);
               } else {
-                if (selectedCount <= deck.length) {
-                  scenarioEV += MightDeck.calculateEV(deck, selectedCount, false, true);
+                const fromDeck = deck.length;
+                const fromDiscard = selectedCount - fromDeck;
+                if (selectedCount <= deck.length) { 
+                  if (deck.some(card => card.value === 0)) {
+                    //Caveat: this is not correct. The rolling over is not properly handled yet, but I ran out of ideas.
+                    scenarioEV += MightDeck.calculateEV(deck, fromDeck - 1, false, true) + 
+                                MightDeck.calculateEV(discard, fromDiscard, false, false);
+                  } else {
+                    scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, false) + 
+                                MightDeck.calculateEV(discard, fromDiscard - 1, false, true);
+                  }
                 } else {
-                  const fromDeck = deck.length;
-                  const fromDiscard = selectedCount - 1 - fromDeck;
-                  scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, false) + 
-                              MightDeck.calculateEV(discard, fromDiscard, false, true);
+                  if (deck.some(card => card.value === 0)) {
+                    scenarioEV += MightDeck.calculateEV(deck, fromDeck - 1, false, true) + 
+                                MightDeck.calculateEV(discard, fromDiscard, false, false);
+                  } else {
+                    scenarioEV += MightDeck.calculateEV(deck, fromDeck, false, false) + 
+                                MightDeck.calculateEV(discard, fromDiscard - 1, false, true);
+                  }
                 }
               }
             } else {
               // All other decks have zero blanks
-              if (selectedCount <= deck.length) {
-                scenarioEV += MightDeck.calculateEV(deck, selectedCount, false);
+              if (selectedCount <= deck.length - nCrits) {
+                scenarioEV = MightDeck.calculateEV(deck, selectedCount, false);
               } else {
                 const fromDeck = deck.length;
                 const fromDiscard = selectedCount - fromDeck;
-                scenarioEV += MightDeck.calculateEV(deck, fromDeck, false) + 
-                            MightDeck.calculateEV(discard, fromDiscard, false);
+                if (selectedCount <= deck.length) {
+                  scenarioEV = fromDeck*deckAverage + (selectedCount + nCrits - fromDeck)*discardEV +
+                  MightDeck.calculateEV(discard, fromDiscard, false);
+                } else {
+                  scenarioEV = MightDeck.calculateEV(deck, fromDeck, false) + 
+                  MightDeck.calculateEV(discard, fromDiscard, false);
+                }
               }
             }
           })
