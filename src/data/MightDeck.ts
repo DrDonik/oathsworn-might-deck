@@ -9,10 +9,8 @@ export default class MightDeck {
   private _discard: MightCard[] = [];
   deckAverage: number = 0;
   deckEV: number = 0;
-  deckNoBlanksEV: number = 0;
   discardAverage: number = 0;
   discardEV: number = 0;
-  discardNoBlanksEV: number = 0;
 
   constructor(dice: MightDice, deck?: MightCard[], display?: MightCard[], discard?: MightCard[]) {
     this.dice = dice;
@@ -148,21 +146,9 @@ export default class MightDeck {
     
     if (cards.length === 0) {
       // If deck is empty, use discard values
-      this.deckNoBlanksEV = this.discardNoBlanksEV;
       this.deckEV = this.discardEV;
     } else {
-      // Calculate EV for a single card with no blanks and with blanks considered
-      this.deckNoBlanksEV = MightDeck.calculateNoBlanksEV(cards);
-      
-      // For overall EV, consider both zero and one blank scenarios
-      // P(0 blanks) + P(1 blank) represents hit chance
-      const hitProbability = this.zeroBlanksProbability(1) + this.exactlyOneBlankProbability(1);
-      
-      // EV when drawing 1 card (considering blanks)
-      const ev1 = MightDeck.calculateEV(cards, 1, true, false);
-      
-      // Scale properly based on hit probability
-      this.deckEV = hitProbability > 0 ? ev1 / hitProbability : 0;
+      this.deckEV = MightDeck.calculateEV(cards, 1, true, false);
     }
   }
 
@@ -179,30 +165,15 @@ export default class MightDeck {
     this.discardAverage = cards.length ? cards.reduce((sum, card) => sum + card.value, 0)/cards.length : 0;
     
     if (cards.length === 0) {
-      this.discardNoBlanksEV = 0;
       this.discardEV = 0;
     } else {
-      // Calculate EV for a single card with no blanks
-      this.discardNoBlanksEV = MightDeck.calculateNoBlanksEV(cards);
-      
-      // For overall EV, consider both zero and one blank scenarios
-      // P(0 blanks) + P(1 blank) represents hit chance
-      const hitProbability = 
-        hypergeometricProbability(cards.length, 1, cards.filter(c => !c.value).length, 0) + 
-        hypergeometricProbability(cards.length, 1, cards.filter(c => !c.value).length, 1);
-      
-      // EV when drawing 1 card (considering blanks)
-      const ev1 = MightDeck.calculateEV(cards, 1, true, false);
-      
-      // Scale properly based on hit probability
-      this.discardEV = hitProbability > 0 ? ev1 / hitProbability : 0;
+      this.discardEV = MightDeck.calculateEV(cards, 1, true, false);
     }
 
     // If main deck is empty, use discard values
     if (this.deck.length === 0) {
       this.deckAverage = this.discardAverage;
       this.deckEV = this.discardEV;
-      this.deckNoBlanksEV = this.discardNoBlanksEV;
     }
   }
 
@@ -351,25 +322,6 @@ ${summarize(MightDeck.sort(this.discard))}`;
     }
     
     return totalEV;
-  }
-
-  static calculateNoBlanksEV(cards: { value: number; critical: boolean }[]): number {
-    // Filter out blanks
-    const nonBlankCards = cards.filter((card) => card.value !== 0);
-  
-    if (nonBlankCards.length === 0) {
-      return 0; // No non-blank cards to draw from
-    }
-    
-    // Special case: if all cards are critical
-    if (nonBlankCards.every(card => card.critical)) {
-      return nonBlankCards.reduce((sum, card) => sum + card.value, 0);
-    }
-    
-    // Calculate the average value of drawing 1 non-blank card
-    const singleDrawEV = MightDeck.calculateEV(nonBlankCards, 1, true, false);
-    
-    return singleDrawEV;
   }
 
   static sort(cards: MightCard[]): MightCard[] {
