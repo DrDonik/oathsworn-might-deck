@@ -1,4 +1,4 @@
-import { Typography, Badge, Chip, Box } from '@mui/material';
+import { Typography, Badge, Chip, Box, IconButton } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { FC } from 'react';
 import MightDeck from '../data/MightDeck';
@@ -10,6 +10,7 @@ export type CMigthDeckProps = {
   selected?: number;
   onSelect?: () => void;
   onDeselect?: () => void;
+  onReset?: () => void;
 };
 
 const CMigthDeck: FC<CMigthDeckProps> = ({
@@ -18,6 +19,7 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
   selected = 0,
   onSelect,
   onDeselect,
+  onReset,
 }) => {
   return (
     <Grid container spacing={1}>
@@ -48,14 +50,26 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
           <Badge color="primary" badgeContent={selected} sx={{ float: 'right' }} />
         </Box>
       </Grid>
-      <Grid size={{ xs: 4, sm: 4, md: 4}}>
+      <Grid size={{ xs: 3, sm: 3, md: 3}}>
         <Typography>Blanks: {value?.nBlanks ?? 0}</Typography>
       </Grid>
-      <Grid size={{ xs: 4, sm: 4, md: 4}}>
+      <Grid size={{ xs: 3, sm: 3, md: 3}}>
         <Typography>Crits: {value?.nCrits ?? 0}</Typography>
       </Grid>
-      <Grid size={{ xs: 4, sm: 4, md: 4}}>
+      <Grid size={{ xs: 3, sm: 3, md: 3}}>
         <Typography>EV: {type === 'encounter' ? value?.deckAverage.toFixed(1) ?? 0 : value?.deckEV.toFixed(1) ?? 0}</Typography>
+      </Grid>
+      <Grid size={{ xs: 3, sm: 3, md: 3}} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {onReset && (
+          <IconButton 
+            size="small" 
+            onClick={onReset} 
+            aria-label="reset deck"
+            color="primary"
+          >
+            ↻
+          </IconButton>
+        )}
       </Grid>
     </Grid>
   );

@@ -10,6 +10,7 @@ import MightDeckOrganizer, {
   defaultMightCardsSelection,
 } from './MightDeckOrganizer';
 import MightCard from './MightCard';
+import MightDeck from './MightDeck';
 
 interface AppState {
   isEncounter: boolean;
@@ -25,6 +26,7 @@ interface AppActions {
   toggleDeck: () => void;
   resetSelections: () => void;
   setSelections: (selections: MightCardsSelection) => void;
+  resetDeck: (color: keyof MightCardsSelection) => void;
   confirmDraw: () => void;
   confirmDrawCriticals: () => void;
   toggleDrawResultSelection: (i: number, j: number) => void;
@@ -79,6 +81,23 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
         ...prev,
         selections,
       })),
+      
+    resetDeck: (color: keyof MightCardsSelection) =>
+      setState((prev) => {
+        const updates = prev.isEncounter
+          ? prev.encounterDeck.clone()
+          : prev.oathswornDeck.clone();
+        
+        // Create a fresh deck for the specific color
+        const dice = updates[color].dice;
+        updates[color] = new MightDeck(dice.clone());
+        updates[color].shuffle();
+        
+        return {
+          ...prev,
+          [prev.isEncounter ? 'encounterDeck' : 'oathswornDeck']: updates,
+        };
+      }),
 
     confirmDraw: () =>
       setState((prev) => {

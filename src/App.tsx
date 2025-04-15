@@ -51,6 +51,7 @@ function App() {
             value={isEncounter ? encounterDeck : oathswornDeck}
             selected={selections}
             onSelect={app.actions.setSelections}
+            onResetDeck={app.actions.resetDeck}
           />
           <Divider />
         </Grid>

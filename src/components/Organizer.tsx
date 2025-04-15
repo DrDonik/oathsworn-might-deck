@@ -12,6 +12,7 @@ export type CMightDecksProps = {
   value?: MightDeckOrganizer;
   selected?: MightCardsSelection;
   onSelect?: (event: MightCardsSelection) => void;
+  onResetDeck?: (color: keyof MightCardsSelection) => void;
 };
 
 const CMightDeckOrganizer: FC<CMightDecksProps> = ({
@@ -19,6 +20,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
   value,
   selected = { ...defaultMightCardsSelection },
   onSelect,
+  onResetDeck,
 }) => {
   const inc = (type: MightColor) => {
     onSelect?.({
@@ -49,6 +51,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           onDeselect={() => {
             dec('white');
           }}
+          onReset={onResetDeck ? () => onResetDeck('white') : undefined}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 6, md: 3}}>
@@ -62,6 +65,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           onDeselect={() => {
             dec('yellow');
           }}
+          onReset={onResetDeck ? () => onResetDeck('yellow') : undefined}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 6, md: 3}}>
@@ -75,6 +79,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           onDeselect={() => {
             dec('red');
           }}
+          onReset={onResetDeck ? () => onResetDeck('red') : undefined}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 6, md: 3}}>
@@ -88,6 +93,7 @@ const CMightDeckOrganizer: FC<CMightDecksProps> = ({
           onDeselect={() => {
             dec('black');
           }}
+          onReset={onResetDeck ? () => onResetDeck('black') : undefined}
         />
       </Grid>
     </Grid>
