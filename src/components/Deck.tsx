@@ -50,16 +50,16 @@ const CMigthDeck: FC<CMigthDeckProps> = ({
           <Badge color="primary" badgeContent={selected} sx={{ float: 'right' }} />
         </Box>
       </Grid>
-      <Grid size={{ xs: 3, sm: 3, md: 3}}>
+      <Grid sx={{ flexGrow: 2 }}>
         <Typography>Blanks: {value?.nBlanks ?? 0}</Typography>
       </Grid>
-      <Grid size={{ xs: 3, sm: 3, md: 3}}>
+      <Grid sx={{ flexGrow: 2 }}>
         <Typography>Crits: {value?.nCrits ?? 0}</Typography>
       </Grid>
-      <Grid size={{ xs: 3, sm: 3, md: 3}}>
+      <Grid sx={{ flexGrow: 2 }}>
         <Typography>EV: {type === 'encounter' ? value?.deckAverage.toFixed(1) ?? 0 : value?.deckEV.toFixed(1) ?? 0}</Typography>
       </Grid>
-      <Grid size={{ xs: 3, sm: 3, md: 3}} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Grid sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end' }}>
         {onReset && (
           <IconButton 
             size="small" 
