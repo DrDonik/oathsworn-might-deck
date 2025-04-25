@@ -196,15 +196,15 @@ const CResultsBoard: FC<CResultsBoardProps> = ({ values }) => {
             } else {
               // All other decks have zero blanks
               if (selectedCount <= deck.length - nCrits) {
-                scenarioEV = MightDeck.calculateEV(deck, selectedCount, false);
+                scenarioEV += MightDeck.calculateEV(deck, selectedCount, false);
               } else {
                 const fromDeck = deck.length;
                 const fromDiscard = selectedCount - fromDeck;
                 if (selectedCount <= deck.length) {
-                  scenarioEV = fromDeck*deckAverage + (selectedCount + nCrits - fromDeck)*discardEV +
+                  scenarioEV += fromDeck*deckAverage + (selectedCount + nCrits - fromDeck)*discardEV +
                   MightDeck.calculateEV(discard, fromDiscard, false);
                 } else {
-                  scenarioEV = MightDeck.calculateEV(deck, fromDeck, false) + 
+                  scenarioEV += MightDeck.calculateEV(deck, fromDeck, false) + 
                   MightDeck.calculateEV(discard, fromDiscard, false);
                 }
               }
