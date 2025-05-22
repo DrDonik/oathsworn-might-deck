@@ -120,6 +120,16 @@ export default class MightDeck {
     return this;
   }
 
+  public reset(): void {
+    const newDeck = [...this._deck, ...this._discard];
+    // Assign to this.deck to trigger the setter and update deck-related stats
+    this.deck = newDeck; 
+    // Assign to this.discard to trigger the setter and update discard-related stats (to empty)
+    this.discard = [];
+    // Shuffle the _deck in place. Stats are already updated based on the new content.
+    this.shuffle();
+  }
+
   get size(): number {
     return this.deck.length + this.display.length + this.discard.length;
   }
