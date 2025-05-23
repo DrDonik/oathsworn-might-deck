@@ -10,7 +10,6 @@ import MightDeckOrganizer, {
   defaultMightCardsSelection,
 } from './MightDeckOrganizer';
 import MightCard from './MightCard';
-import MightDeck from './MightDeck';
 
 interface AppState {
   isEncounter: boolean;
