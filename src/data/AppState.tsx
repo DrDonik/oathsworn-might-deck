@@ -10,7 +10,6 @@ import MightDeckOrganizer, {
   defaultMightCardsSelection,
 } from './MightDeckOrganizer';
 import MightCard from './MightCard';
-import MightDeck from './MightDeck';
 
 interface AppState {
   isEncounter: boolean;
@@ -88,10 +87,8 @@ export const AppStateProvider: FC<{ children: ReactNode }> = ({ children }) => {
           ? prev.encounterDeck.clone()
           : prev.oathswornDeck.clone();
         
-        // Create a fresh deck for the specific color
-        const dice = updates[color].dice;
-        updates[color] = new MightDeck(dice.clone());
-        updates[color].shuffle();
+        // Reset the specific deck
+        updates[color].reset();
         
         return {
           ...prev,
