@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Oathsworn Might Deck">
+  <title>Oathsworn Might Deck</title>
+  <rect width="64" height="64" rx="14" fill="#10161B"/>
+  <g transform="translate(32,47.5)">
+    <g transform="rotate(-27)"><rect x="-10.5" y="-33" width="21" height="33" rx="3.5" fill="#212121" stroke="#7C8A97" stroke-width="1.6"/></g>
+    <g transform="rotate(-9)"><rect x="-10.5" y="-35" width="21" height="35" rx="3.5" fill="#C62828" stroke="#10161B" stroke-width="1.6"/></g>
+    <g transform="rotate(9)"><rect x="-10.5" y="-35" width="21" height="35" rx="3.5" fill="#FBC02D" stroke="#10161B" stroke-width="1.6"/></g>
+    <g transform="rotate(27)"><rect x="-10.5" y="-33" width="21" height="33" rx="3.5" fill="#F5F5F5" stroke="#10161B" stroke-width="1.6"/></g>
+  </g>
+</svg>
